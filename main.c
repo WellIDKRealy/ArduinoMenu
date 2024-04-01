@@ -2,10 +2,12 @@
 #include <util/delay.h>
 
 #include <stdbool.h>
+#include <string.h>
 
 // PINOUT https://www.teachmemicro.com/wp-content/uploads/2019/06/Arduino-Nano-pinout-3.jpg
 
 #include "lcd.h"
+#include "font.h"
 #include "keypad.h"
 
 #define COLS_NO 3
@@ -20,12 +22,100 @@ const char cmap[COLS_NO*ROWS_NO] = {
   '*', '7', '4', '1',
 };
 
-/* const char cmap[COLS_NO*ROWS_NO] = { */
-/*   '1', '2', '3', */
-/*   '4', '5', '6', */
-/*   '7', '8', '9', */
-/*   '*', '0', '#', */
-/* }; */
+#define TEXT_HEIGHT (DISPLAY_HEIGHT/8)
+#define TEXT_WIDTH (DISPLAY_WIDTH/sizeof(FONT[0]))
+
+#define MENU_ITEMS_NO 11
+
+const char* MENU_ITEMS[MENU_ITEMS_NO] = {
+  "TEST",
+  "TEST2",
+  "TEST3",
+  "TEST4",
+  "TEST5",
+  "TEST6",
+  "TEST7",
+  "TEST8",
+  "TEST9",
+  "TEST10",
+  "TEST11",
+};
+
+static uint8_t SELECTED = 0;
+static uint8_t ORIGIN = 0;
+
+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+
+static inline void draw_menu(void) {
+  lcd_clear_buffer();
+
+  char tmp[32];
+
+  sprintf(tmp, "%i %i %i %i", ORIGIN, SELECTED, TEXT_WIDTH, TEXT_HEIGHT);
+
+  lcd_gotoxy(TEXT_WIDTH - strlen(tmp), 0);
+  lcd_puts(tmp);
+
+  for(uint8_t i = ORIGIN; i < MIN(MENU_ITEMS_NO, ORIGIN + TEXT_HEIGHT); i++) {
+	lcd_gotoxy(1, i - ORIGIN);
+	lcd_puts(MENU_ITEMS[i]);
+  }
+
+  lcd_gotoxy(0, SELECTED - ORIGIN);
+  lcd_putc('>');
+}
+
+static inline void update_origin(void) {
+  if(SELECTED + 2 - ORIGIN >= TEXT_HEIGHT) {
+  } else {
+	ORIGIN = 0;
+  }
+}
+
+static inline void inc_selected(void) {
+  if(SELECTED >= MENU_ITEMS_NO - 1) {
+	return;
+  }
+
+  SELECTED += 1;
+
+  if(SELECTED + 2 - ORIGIN >= TEXT_HEIGHT &&
+	 ORIGIN < MENU_ITEMS_NO - TEXT_HEIGHT) {
+	ORIGIN += 1;
+
+	draw_menu();
+
+	return;
+  }
+
+  lcd_gotoxy(0, SELECTED - ORIGIN - 1);
+  lcd_putc(' ');
+
+  lcd_gotoxy(0, SELECTED - ORIGIN);
+  lcd_putc('>');
+}
+
+static inline void dec_selected(void) {
+  if(SELECTED <= 0) {
+	return;
+  }
+
+  SELECTED -= 1;
+
+  if(SELECTED <= ORIGIN + 2 && ORIGIN > 0) {
+	ORIGIN -= 1;
+
+	draw_menu();
+
+	return;
+  }
+
+  lcd_gotoxy(0, SELECTED - ORIGIN + 1);
+  lcd_putc(' ');
+
+  lcd_gotoxy(0, SELECTED - ORIGIN);
+  lcd_putc('>');
+}
 
 int main(void) {
   keypad_t keypad = make_keypad(COLS, COLS_NO, ROWS, ROWS_NO);
@@ -33,23 +123,76 @@ int main(void) {
 
   lcd_init(LCD_DISP_ON);
 
+  update_origin();
+
+  draw_menu();
+  lcd_display();
+
   uint16_t last_mask = 0;
   uint16_t current_mask, diff_mask;
 
+  bool changed;
+
   while(true) {
-	_delay_ms(100);
+	_delay_ms(10);
+
+	changed = true;
 
 	current_mask = key_scan16(&keypad);
 	diff_mask = ~last_mask & current_mask;
 
+	char pressed = '\0';
 	for(uint8_t i = 0; i < COLS_NO*ROWS_NO; i++) {
 	  if((diff_mask >> i) & 1) {
-		lcd_putc(cmap[i]);
+		pressed = cmap[i];
+		break;
 	  }
+	}
+
+	switch(pressed) {
+	case '2':
+	  dec_selected();
+	  break;
+	case '8':
+	  inc_selected();
+	  break;
+
+	default:
+	  changed = false;
+	}
+
+	if(changed) {
+	  lcd_display();
 	}
 
 	last_mask = current_mask;
   }
+
+  /* uint16_t last_mask = 0; */
+  /* uint16_t current_mask, diff_mask; */
+
+  /* uint8_t x = 0; */
+  /* uint8_t y = 0; */
+
+  /* while(true) { */
+  /*	_delay_ms(16); */
+
+  /*	current_mask = key_scan16(&keypad); */
+  /*	diff_mask = ~last_mask & current_mask; */
+
+  /*	for(uint8_t i = 0; i < COLS_NO*ROWS_NO; i++) { */
+  /*	  if((diff_mask >> i) & 1) { */
+  /*		lcd_gotoxy(x, y); */
+  /*		lcd_putc(cmap[i]); */
+
+  /*		x += 1; */
+  /*	  } */
+
+  /*	} */
+
+  /*	last_mask = current_mask; */
+  /*	lcd_display(); */
+  /* } */
 
   /* bool mask[ROWS_NO*COLS_NO]; */
   /* char str[32]; */

@@ -13,6 +13,7 @@ CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -ffunction-sections -fdata-sections -fno-fat-lto-objects
 CFLAGS += -Wall -Wstrict-prototypes
 CFLAGS += -static -flto
+CFLAGS += -D GRAPHICMODE
 
 GUIX_INVOKE = guix time-machine -C channels.scm -- shell -m manifest.scm --pure -- make
 
