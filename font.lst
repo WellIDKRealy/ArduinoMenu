@@ -1,0 +1,375 @@
+   1               		.file	"font.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	special_char
+  11               		.section	.progmem.data,"a",@progbits
+  14               	special_char:
+  15 0000 BC5F      		.ascii	"\274_"
+  16 0002 9C60      		.ascii	"\234`"
+  17 0004 A461      		.ascii	"\244a"
+  18 0006 8462      		.ascii	"\204b"
+  19 0008 B663      		.ascii	"\266c"
+  20 000a 9664      		.ascii	"\226d"
+  21 000c B065      		.ascii	"\260e"
+  22 000e 9F66      		.ascii	"\237f"
+  23 0010 B567      		.ascii	"\265g"
+  24 0012 8968      		.ascii	"\211h"
+  25 0014 A969      		.ascii	"\251i"
+  26 0016 FFFF      		.ascii	"\377\377"
+  27               	.global	ssd1306oled_font
+  30               	ssd1306oled_font:
+  31 0018 00        		.string	""
+  32 0019 00        		.string	""
+  33 001a 00        		.string	""
+  34 001b 00        		.string	""
+  35 001c 00        		.string	""
+  36 001d 00        		.string	""
+  37 001e 00        		.string	""
+  38 001f 00        		.string	""
+  39 0020 00        		.string	""
+  40 0021 2F00      		.string	"/"
+  41 0023 00        		.string	""
+  42 0024 00        		.string	""
+  43 0025 00        		.string	""
+  44 0026 0700      		.string	"\007"
+  45 0028 0700      		.string	"\007"
+  46 002a 00        		.string	""
+  47 002b 147F 147F 		.ascii	"\024\177\024\177\024"
+  47      14
+  48 0030 00        		.string	""
+  49 0031 242A 7F2A 		.ascii	"$*\177*\022"
+  49      12
+  50 0036 00        		.string	""
+  51 0037 6264 0813 		.ascii	"bd\b\023#"
+  51      23
+  52 003c 00        		.string	""
+  53 003d 3649 5522 		.ascii	"6IU\"P"
+  53      50
+  54 0042 00        		.string	""
+  55 0043 00        		.string	""
+  56 0044 0503 00   		.string	"\005\003"
+  57 0047 00        		.string	""
+  58 0048 00        		.string	""
+  59 0049 00        		.string	""
+  60 004a 1C22 4100 		.string	"\034\"A"
+  61 004e 00        		.string	""
+  62 004f 00        		.string	""
+  63 0050 4122 1C00 		.string	"A\"\034"
+  64 0054 00        		.string	""
+  65 0055 1408 3E08 		.ascii	"\024\b>\b\024"
+  65      14
+  66 005a 00        		.string	""
+  67 005b 0808 3E08 		.ascii	"\b\b>\b\b"
+  67      08
+  68 0060 00        		.string	""
+  69 0061 00        		.string	""
+  70 0062 00        		.string	""
+  71 0063 A060 00   		.string	"\240`"
+  72 0066 00        		.string	""
+  73 0067 0808 0808 		.ascii	"\b\b\b\b\b"
+  73      08
+  74 006c 00        		.string	""
+  75 006d 00        		.string	""
+  76 006e 6060 00   		.string	"``"
+  77 0071 00        		.string	""
+  78 0072 00        		.string	""
+  79 0073 2010 0804 		.ascii	" \020\b\004\002"
+  79      02
+  80 0078 00        		.string	""
+  81 0079 3E51 4945 		.ascii	">QIE>"
+  81      3E
+  82 007e 00        		.string	""
+  83 007f 00        		.string	""
+  84 0080 427F 4000 		.string	"B\177@"
+  85 0084 00        		.string	""
+  86 0085 4261 5149 		.ascii	"BaQIF"
+  86      46
+  87 008a 00        		.string	""
+  88 008b 2141 454B 		.ascii	"!AEK1"
+  88      31
+  89 0090 00        		.string	""
+  90 0091 1814 127F 		.ascii	"\030\024\022\177\020"
+  90      10
+  91 0096 00        		.string	""
+  92 0097 2745 4545 		.ascii	"'EEE9"
+  92      39
+  93 009c 00        		.string	""
+  94 009d 3C4A 4949 		.ascii	"<JII0"
+  94      30
+  95 00a2 00        		.string	""
+  96 00a3 0171 0905 		.ascii	"\001q\t\005\003"
+  96      03
+  97 00a8 00        		.string	""
+  98 00a9 3649 4949 		.ascii	"6III6"
+  98      36
+  99 00ae 00        		.string	""
+ 100 00af 0649 4929 		.ascii	"\006II)\036"
+ 100      1E
+ 101 00b4 00        		.string	""
+ 102 00b5 00        		.string	""
+ 103 00b6 3636 00   		.string	"66"
+ 104 00b9 00        		.string	""
+ 105 00ba 00        		.string	""
+ 106 00bb 00        		.string	""
+ 107 00bc 5636 00   		.string	"V6"
+ 108 00bf 00        		.string	""
+ 109 00c0 00        		.string	""
+ 110 00c1 0814 2241 		.string	"\b\024\"A"
+ 110      00
+ 111 00c6 00        		.string	""
+ 112 00c7 1414 1414 		.ascii	"\024\024\024\024\024"
+ 112      14
+ 113 00cc 00        		.string	""
+ 114 00cd 00        		.string	""
+ 115 00ce 4122 1408 		.ascii	"A\"\024\b"
+ 116 00d2 00        		.string	""
+ 117 00d3 0201 5109 		.ascii	"\002\001Q\t\006"
+ 117      06
+ 118 00d8 00        		.string	""
+ 119 00d9 3249 5951 		.ascii	"2IYQ>"
+ 119      3E
+ 120 00de 00        		.string	""
+ 121 00df 7C12 1112 		.ascii	"|\022\021\022|"
+ 121      7C
+ 122 00e4 00        		.string	""
+ 123 00e5 7F49 4949 		.ascii	"\177III6"
+ 123      36
+ 124 00ea 00        		.string	""
+ 125 00eb 3E41 4141 		.ascii	">AAA\""
+ 125      22
+ 126 00f0 00        		.string	""
+ 127 00f1 7F41 4122 		.ascii	"\177AA\"\034"
+ 127      1C
+ 128 00f6 00        		.string	""
+ 129 00f7 7F49 4949 		.ascii	"\177IIIA"
+ 129      41
+ 130 00fc 00        		.string	""
+ 131 00fd 7F09 0909 		.ascii	"\177\t\t\t\001"
+ 131      01
+ 132 0102 00        		.string	""
+ 133 0103 3E41 4949 		.ascii	">AIIz"
+ 133      7A
+ 134 0108 00        		.string	""
+ 135 0109 7F08 0808 		.ascii	"\177\b\b\b\177"
+ 135      7F
+ 136 010e 00        		.string	""
+ 137 010f 00        		.string	""
+ 138 0110 417F 4100 		.string	"A\177A"
+ 139 0114 00        		.string	""
+ 140 0115 2040 413F 		.ascii	" @A?\001"
+ 140      01
+ 141 011a 00        		.string	""
+ 142 011b 7F08 1422 		.ascii	"\177\b\024\"A"
+ 142      41
+ 143 0120 00        		.string	""
+ 144 0121 7F40 4040 		.ascii	"\177@@@@"
+ 144      40
+ 145 0126 00        		.string	""
+ 146 0127 7F02 0C02 		.ascii	"\177\002\f\002\177"
+ 146      7F
+ 147 012c 00        		.string	""
+ 148 012d 7F04 0810 		.ascii	"\177\004\b\020\177"
+ 148      7F
+ 149 0132 00        		.string	""
+ 150 0133 3E41 4141 		.ascii	">AAA>"
+ 150      3E
+ 151 0138 00        		.string	""
+ 152 0139 7F09 0909 		.ascii	"\177\t\t\t\006"
+ 152      06
+ 153 013e 00        		.string	""
+ 154 013f 3E41 5121 		.ascii	">AQ!^"
+ 154      5E
+ 155 0144 00        		.string	""
+ 156 0145 7F09 1929 		.ascii	"\177\t\031)F"
+ 156      46
+ 157 014a 00        		.string	""
+ 158 014b 4649 4949 		.ascii	"FIII1"
+ 158      31
+ 159 0150 00        		.string	""
+ 160 0151 0101 7F01 		.ascii	"\001\001\177\001\001"
+ 160      01
+ 161 0156 00        		.string	""
+ 162 0157 3F40 4040 		.ascii	"?@@@?"
+ 162      3F
+ 163 015c 00        		.string	""
+ 164 015d 1F20 4020 		.ascii	"\037 @ \037"
+ 164      1F
+ 165 0162 00        		.string	""
+ 166 0163 3F40 3840 		.ascii	"?@8@?"
+ 166      3F
+ 167 0168 00        		.string	""
+ 168 0169 6314 0814 		.ascii	"c\024\b\024c"
+ 168      63
+ 169 016e 00        		.string	""
+ 170 016f 0708 7008 		.ascii	"\007\bp\b\007"
+ 170      07
+ 171 0174 00        		.string	""
+ 172 0175 6151 4945 		.ascii	"aQIEC"
+ 172      43
+ 173 017a 00        		.string	""
+ 174 017b 00        		.string	""
+ 175 017c 7F41 4100 		.string	"\177AA"
+ 176 0180 00        		.string	""
+ 177 0181 552A 552A 		.ascii	"U*U*U"
+ 177      55
+ 178 0186 00        		.string	""
+ 179 0187 00        		.string	""
+ 180 0188 4141 7F00 		.string	"AA\177"
+ 181 018c 00        		.string	""
+ 182 018d 0402 0102 		.ascii	"\004\002\001\002\004"
+ 182      04
+ 183 0192 00        		.string	""
+ 184 0193 4040 4040 		.ascii	"@@@@@"
+ 184      40
+ 185 0198 00        		.string	""
+ 186 0199 00        		.string	""
+ 187 019a 0102 0400 		.string	"\001\002\004"
+ 188 019e 00        		.string	""
+ 189 019f 2054 5454 		.ascii	" TTTx"
+ 189      78
+ 190 01a4 00        		.string	""
+ 191 01a5 7F48 4444 		.ascii	"\177HDD8"
+ 191      38
+ 192 01aa 00        		.string	""
+ 193 01ab 3844 4444 		.ascii	"8DDD "
+ 193      20
+ 194 01b0 00        		.string	""
+ 195 01b1 3844 4448 		.ascii	"8DDH\177"
+ 195      7F
+ 196 01b6 00        		.string	""
+ 197 01b7 3854 5454 		.ascii	"8TTT\030"
+ 197      18
+ 198 01bc 00        		.string	""
+ 199 01bd 087E 0901 		.ascii	"\b~\t\001\002"
+ 199      02
+ 200 01c2 00        		.string	""
+ 201 01c3 18A4 A4A4 		.ascii	"\030\244\244\244|"
+ 201      7C
+ 202 01c8 00        		.string	""
+ 203 01c9 7F08 0404 		.ascii	"\177\b\004\004x"
+ 203      78
+ 204 01ce 00        		.string	""
+ 205 01cf 00        		.string	""
+ 206 01d0 447D 4000 		.string	"D}@"
+ 207 01d4 00        		.string	""
+ 208 01d5 4080 847D 		.string	"@\200\204}"
+ 208      00
+ 209 01da 00        		.string	""
+ 210 01db 7F10 2844 		.string	"\177\020(D"
+ 210      00
+ 211 01e0 00        		.string	""
+ 212 01e1 00        		.string	""
+ 213 01e2 417F 4000 		.string	"A\177@"
+ 214 01e6 00        		.string	""
+ 215 01e7 7C04 1804 		.ascii	"|\004\030\004x"
+ 215      78
+ 216 01ec 00        		.string	""
+ 217 01ed 7C08 0404 		.ascii	"|\b\004\004x"
+ 217      78
+ 218 01f2 00        		.string	""
+ 219 01f3 3844 4444 		.ascii	"8DDD8"
+ 219      38
+ 220 01f8 00        		.string	""
+ 221 01f9 FC24 2424 		.ascii	"\374$$$\030"
+ 221      18
+ 222 01fe 00        		.string	""
+ 223 01ff 1824 2418 		.ascii	"\030$$\030\374"
+ 223      FC
+ 224 0204 00        		.string	""
+ 225 0205 7C08 0404 		.ascii	"|\b\004\004\b"
+ 225      08
+ 226 020a 00        		.string	""
+ 227 020b 4854 5454 		.ascii	"HTTT "
+ 227      20
+ 228 0210 00        		.string	""
+ 229 0211 043F 4440 		.ascii	"\004?D@ "
+ 229      20
+ 230 0216 00        		.string	""
+ 231 0217 3C40 4020 		.ascii	"<@@ |"
+ 231      7C
+ 232 021c 00        		.string	""
+ 233 021d 1C20 4020 		.ascii	"\034 @ \034"
+ 233      1C
+ 234 0222 00        		.string	""
+ 235 0223 3C40 3040 		.ascii	"<@0@<"
+ 235      3C
+ 236 0228 00        		.string	""
+ 237 0229 4428 1028 		.ascii	"D(\020(D"
+ 237      44
+ 238 022e 00        		.string	""
+ 239 022f 1CA0 A0A0 		.ascii	"\034\240\240\240|"
+ 239      7C
+ 240 0234 00        		.string	""
+ 241 0235 4464 544C 		.ascii	"DdTLD"
+ 241      44
+ 242 023a 00        		.string	""
+ 243 023b 00        		.string	""
+ 244 023c 0877 4100 		.string	"\bwA"
+ 245 0240 00        		.string	""
+ 246 0241 00        		.string	""
+ 247 0242 00        		.string	""
+ 248 0243 6300      		.string	"c"
+ 249 0245 00        		.string	""
+ 250 0246 00        		.string	""
+ 251 0247 00        		.string	""
+ 252 0248 4177 0800 		.string	"Aw\b"
+ 253 024c 00        		.string	""
+ 254 024d 0804 0808 		.ascii	"\b\004\b\b\004"
+ 254      04
+ 255 0252 00        		.string	""
+ 256 0253 3A40 4020 		.ascii	":@@ z"
+ 256      7A
+ 257 0258 00        		.string	""
+ 258 0259 3D40 4040 		.ascii	"=@@@="
+ 258      3D
+ 259 025e 00        		.string	""
+ 260 025f 2154 5454 		.ascii	"!TTTy"
+ 260      79
+ 261 0264 00        		.string	""
+ 262 0265 7D12 1112 		.ascii	"}\022\021\022}"
+ 262      7D
+ 263 026a 00        		.string	""
+ 264 026b 3944 4444 		.ascii	"9DDD9"
+ 264      39
+ 265 0270 00        		.string	""
+ 266 0271 3D42 4242 		.ascii	"=BBB="
+ 266      3D
+ 267 0276 00        		.string	""
+ 268 0277 0205 0200 		.string	"\002\005\002"
+ 269 027b 00        		.string	""
+ 270 027c 00        		.string	""
+ 271 027d 7E01 4955 		.ascii	"~\001IUs"
+ 271      73
+ 272 0282 00        		.string	""
+ 273 0283 7C10 1008 		.ascii	"|\020\020\b\034"
+ 273      1C
+ 274 0288 00        		.string	""
+ 275 0289 3048 2048 		.ascii	"0H H0"
+ 275      30
+ 276 028e 00        		.string	""
+ 277 028f 5C62 0262 		.ascii	"\\b\002b\\"
+ 277      5C
+ 278               		.text
+ 279               	.Letext0:
+ 280               		.file 1 "font.h"
+ 281               		.file 2 "font.c"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 font.c
+     /tmp/ccl1y9x8.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccl1y9x8.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccl1y9x8.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccl1y9x8.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccl1y9x8.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccl1y9x8.s:14     .progmem.data:0000000000000000 special_char
+     /tmp/ccl1y9x8.s:30     .progmem.data:0000000000000018 ssd1306oled_font
+     /tmp/ccl1y9x8.s:412    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+     /tmp/ccl1y9x8.s:528    .debug_line:0000000000000000 .Ldebug_line0
+     /tmp/ccl1y9x8.s:283    .debug_info:0000000000000000 .Ldebug_info0
+
+NO UNDEFINED SYMBOLS

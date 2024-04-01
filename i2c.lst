@@ -1,0 +1,764 @@
+   1               		.file	"i2c.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__tmp_reg__ = 0
+   6               	__zero_reg__ = 1
+   7               		.text
+   8               	.Ltext0:
+   9               		.cfi_sections	.debug_frame
+  10               	.global	i2c_init
+  12               	i2c_init:
+  13               	.LFB1:
+  14               		.file 1 "i2c.c"
+   1:i2c.c         **** //
+   2:i2c.c         **** //  i2c.c
+   3:i2c.c         **** //  i2c
+   4:i2c.c         **** //
+   5:i2c.c         **** //  Created by Michael Köhler on 09.10.17.
+   6:i2c.c         **** //
+   7:i2c.c         **** //
+   8:i2c.c         **** 
+   9:i2c.c         **** #include "i2c.h"
+  10:i2c.c         **** 
+  11:i2c.c         **** #if defined (__AVR_ATmega328__) || defined(__AVR_ATmega328P__) || \
+  12:i2c.c         **** defined(__AVR_ATmega168P__) || defined(__AVR_ATmega168PA__) || \
+  13:i2c.c         **** defined(__AVR_ATmega88P__) || \
+  14:i2c.c         **** defined(__AVR_ATmega8__) || \
+  15:i2c.c         **** defined(__AVR_ATmega48P__) || \
+  16:i2c.c         **** defined(__AVR_ATmega1284P__) || \
+  17:i2c.c         **** defined (__AVR_ATmega324A__) || defined (__AVR_ATmega324P__) || defined (__AVR_ATmega324PA__) || \
+  18:i2c.c         **** defined (__AVR_ATmega644__) || defined (__AVR_ATmega644A__) || defined (__AVR_ATmega644P__) || defi
+  19:i2c.c         **** defined (__AVR_ATmega1284P__) || \
+  20:i2c.c         **** defined (__AVR_ATmega2560__)
+  21:i2c.c         **** #if PSC_I2C != 1 && PSC_I2C != 4 && PSC_I2C != 16 && PSC_I2C != 64
+  22:i2c.c         **** #error "Wrong prescaler for TWI !"
+  23:i2c.c         **** #elif SET_TWBR < 0 || SET_TWBR > 255
+  24:i2c.c         **** #error "TWBR out of range, change PSC_I2C or F_I2C !"
+  25:i2c.c         **** #endif
+  26:i2c.c         **** 
+  27:i2c.c         **** uint8_t I2C_ErrorCode;
+  28:i2c.c         **** /**********************************************
+  29:i2c.c         ****  Public Function: i2c_init
+  30:i2c.c         ****  
+  31:i2c.c         ****  Purpose: Initialise TWI/I2C interface
+  32:i2c.c         ****  
+  33:i2c.c         ****  Input Parameter: none
+  34:i2c.c         ****  
+  35:i2c.c         ****  Return Value: none
+  36:i2c.c         ****  **********************************************/
+  37:i2c.c         **** void i2c_init(void){
+  15               		.loc 1 37 20 view -0
+  16               		.cfi_startproc
+  17               	/* prologue: function */
+  18               	/* frame size = 0 */
+  19               	/* stack size = 0 */
+  20               	.L__stack_usage = 0
+  38:i2c.c         ****     // set clock
+  39:i2c.c         ****     switch (PSC_I2C) {
+  21               		.loc 1 39 5 view .LVU1
+  40:i2c.c         ****         case 4:
+  41:i2c.c         ****             TWSR = 0x1;
+  42:i2c.c         ****             break;
+  43:i2c.c         ****         case 16:
+  44:i2c.c         ****             TWSR = 0x2;
+  45:i2c.c         ****             break;
+  46:i2c.c         ****         case 64:
+  47:i2c.c         ****             TWSR = 0x3;
+  48:i2c.c         ****             break;
+  49:i2c.c         ****         default:
+  50:i2c.c         ****             TWSR = 0x00;
+  22               		.loc 1 50 13 view .LVU2
+  23               		.loc 1 50 18 is_stmt 0 view .LVU3
+  24 0000 1092 B900 		sts 185,__zero_reg__
+  51:i2c.c         ****             break;
+  25               		.loc 1 51 13 is_stmt 1 view .LVU4
+  52:i2c.c         ****     }
+  53:i2c.c         ****     TWBR = (uint8_t)SET_TWBR;
+  26               		.loc 1 53 5 view .LVU5
+  27               		.loc 1 53 10 is_stmt 0 view .LVU6
+  28 0004 88E4      		ldi r24,lo8(72)
+  29 0006 8093 B800 		sts 184,r24
+  54:i2c.c         ****     // enable
+  55:i2c.c         ****     TWCR = (1 << TWEN);
+  30               		.loc 1 55 5 is_stmt 1 view .LVU7
+  31               		.loc 1 55 10 is_stmt 0 view .LVU8
+  32 000a 84E0      		ldi r24,lo8(4)
+  33 000c 8093 BC00 		sts 188,r24
+  34               	/* epilogue start */
+  56:i2c.c         **** }
+  35               		.loc 1 56 1 view .LVU9
+  36 0010 0895      		ret
+  37               		.cfi_endproc
+  38               	.LFE1:
+  40               	.global	i2c_start
+  42               	i2c_start:
+  43               	.LVL0:
+  44               	.LFB2:
+  57:i2c.c         **** /**********************************************
+  58:i2c.c         ****  Public Function: i2c_start
+  59:i2c.c         ****  
+  60:i2c.c         ****  Purpose: Start TWI/I2C interface
+  61:i2c.c         ****  
+  62:i2c.c         ****  Input Parameter:
+  63:i2c.c         ****  - uint8_t i2c_addr: Adress of reciever
+  64:i2c.c         ****  
+  65:i2c.c         ****  Return Value: none
+  66:i2c.c         ****  **********************************************/
+  67:i2c.c         **** void i2c_start(uint8_t i2c_addr){
+  45               		.loc 1 67 33 is_stmt 1 view -0
+  46               		.cfi_startproc
+  47               	/* prologue: function */
+  48               	/* frame size = 0 */
+  49               	/* stack size = 0 */
+  50               	.L__stack_usage = 0
+  68:i2c.c         ****     // i2c start
+  69:i2c.c         ****     TWCR = (1 << TWINT)|(1 << TWSTA)|(1 << TWEN);
+  51               		.loc 1 69 5 view .LVU11
+  52               		.loc 1 69 10 is_stmt 0 view .LVU12
+  53 0012 94EA      		ldi r25,lo8(-92)
+  54 0014 9093 BC00 		sts 188,r25
+  70:i2c.c         **** 	uint16_t timeout = F_CPU/F_I2C*2.0;
+  55               		.loc 1 70 2 is_stmt 1 view .LVU13
+  56               	.LVL1:
+  71:i2c.c         ****     while((TWCR & (1 << TWINT)) == 0 &&
+  57               		.loc 1 71 5 view .LVU14
+  58               		.loc 1 71 10 is_stmt 0 view .LVU15
+  59 0018 20E4      		ldi r18,lo8(64)
+  60 001a 31E0      		ldi r19,lo8(1)
+  61               	.LVL2:
+  62               	.L3:
+  63               		.loc 1 71 38 is_stmt 1 view .LVU16
+  64               		.loc 1 71 12 is_stmt 0 view .LVU17
+  65 001c 9091 BC00 		lds r25,188
+  66               		.loc 1 71 38 view .LVU18
+  67 0020 97FF      		sbrs r25,7
+  68 0022 00C0      		rjmp .L5
+  72:i2c.c         **** 		timeout !=0){
+  73:i2c.c         **** 		timeout--;
+  74:i2c.c         **** 		if(timeout == 0){
+  75:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_START);
+  76:i2c.c         **** 			return;
+  77:i2c.c         **** 		}
+  78:i2c.c         **** 	};
+  69               		.loc 1 78 3 is_stmt 1 view .LVU19
+  79:i2c.c         ****     // send adress
+  80:i2c.c         ****     TWDR = i2c_addr;
+  70               		.loc 1 80 5 view .LVU20
+  71               		.loc 1 80 10 is_stmt 0 view .LVU21
+  72 0024 8093 BB00 		sts 187,r24
+  81:i2c.c         ****     TWCR = (1 << TWINT)|( 1 << TWEN);
+  73               		.loc 1 81 5 is_stmt 1 view .LVU22
+  74               		.loc 1 81 10 is_stmt 0 view .LVU23
+  75 0028 84E8      		ldi r24,lo8(-124)
+  76               	.LVL3:
+  77               		.loc 1 81 10 view .LVU24
+  78 002a 8093 BC00 		sts 188,r24
+  79               	.LVL4:
+  82:i2c.c         ****     timeout = F_CPU/F_I2C*2.0;
+  80               		.loc 1 82 5 is_stmt 1 view .LVU25
+  83:i2c.c         ****     while((TWCR & (1 << TWINT)) == 0 &&
+  81               		.loc 1 83 5 view .LVU26
+  82               		.loc 1 83 10 is_stmt 0 view .LVU27
+  83 002e 80E4      		ldi r24,lo8(64)
+  84 0030 91E0      		ldi r25,lo8(1)
+  85               	.LVL5:
+  86               	.L6:
+  87               		.loc 1 83 38 is_stmt 1 view .LVU28
+  88               		.loc 1 83 12 is_stmt 0 view .LVU29
+  89 0032 2091 BC00 		lds r18,188
+  90               		.loc 1 83 38 view .LVU30
+  91 0036 27FF      		sbrs r18,7
+  92 0038 00C0      		rjmp .L7
+  93               	/* epilogue start */
+  84:i2c.c         **** 		  timeout !=0){
+  85:i2c.c         **** 		timeout--;
+  86:i2c.c         **** 		if(timeout == 0){
+  87:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_SENDADRESS);
+  88:i2c.c         **** 			return;
+  89:i2c.c         **** 		}
+  90:i2c.c         **** 	};
+  91:i2c.c         **** }
+  94               		.loc 1 91 1 view .LVU31
+  95 003a 0895      		ret
+  96               	.LVL6:
+  97               	.L5:
+  73:i2c.c         **** 		if(timeout == 0){
+  98               		.loc 1 73 3 is_stmt 1 view .LVU32
+  74:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_START);
+  99               		.loc 1 74 3 view .LVU33
+  74:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_START);
+ 100               		.loc 1 74 5 is_stmt 0 view .LVU34
+ 101 003c 2150      		subi r18,1
+ 102 003e 3109      		sbc r19,__zero_reg__
+ 103               	.LVL7:
+  74:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_START);
+ 104               		.loc 1 74 5 view .LVU35
+ 105 0040 01F4      		brne .L3
+  75:i2c.c         **** 			return;
+ 106               		.loc 1 75 4 is_stmt 1 view .LVU36
+  75:i2c.c         **** 			return;
+ 107               		.loc 1 75 18 is_stmt 0 view .LVU37
+ 108 0042 8091 0000 		lds r24,I2C_ErrorCode
+ 109               	.LVL8:
+  75:i2c.c         **** 			return;
+ 110               		.loc 1 75 18 view .LVU38
+ 111 0046 8160      		ori r24,lo8(1)
+ 112               	.LVL9:
+ 113               	.L10:
+  87:i2c.c         **** 			return;
+ 114               		.loc 1 87 18 view .LVU39
+ 115 0048 8093 0000 		sts I2C_ErrorCode,r24
+  88:i2c.c         **** 		}
+ 116               		.loc 1 88 4 is_stmt 1 view .LVU40
+ 117 004c 0895      		ret
+ 118               	.LVL10:
+ 119               	.L7:
+  85:i2c.c         **** 		if(timeout == 0){
+ 120               		.loc 1 85 3 view .LVU41
+  86:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_SENDADRESS);
+ 121               		.loc 1 86 3 view .LVU42
+  86:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_SENDADRESS);
+ 122               		.loc 1 86 5 is_stmt 0 view .LVU43
+ 123 004e 0197      		sbiw r24,1
+ 124               	.LVL11:
+  86:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_SENDADRESS);
+ 125               		.loc 1 86 5 view .LVU44
+ 126 0050 01F4      		brne .L6
+  87:i2c.c         **** 			return;
+ 127               		.loc 1 87 4 is_stmt 1 view .LVU45
+  87:i2c.c         **** 			return;
+ 128               		.loc 1 87 18 is_stmt 0 view .LVU46
+ 129 0052 8091 0000 		lds r24,I2C_ErrorCode
+ 130               	.LVL12:
+  87:i2c.c         **** 			return;
+ 131               		.loc 1 87 18 view .LVU47
+ 132 0056 8260      		ori r24,lo8(2)
+ 133 0058 00C0      		rjmp .L10
+ 134               		.cfi_endproc
+ 135               	.LFE2:
+ 137               	.global	i2c_stop
+ 139               	i2c_stop:
+ 140               	.LFB3:
+  92:i2c.c         **** /**********************************************
+  93:i2c.c         ****  Public Function: i2c_stop
+  94:i2c.c         ****  
+  95:i2c.c         ****  Purpose: Stop TWI/I2C interface
+  96:i2c.c         ****  
+  97:i2c.c         ****  Input Parameter: none
+  98:i2c.c         ****  
+  99:i2c.c         ****  Return Value: none
+ 100:i2c.c         ****  **********************************************/
+ 101:i2c.c         **** void i2c_stop(void){
+ 141               		.loc 1 101 20 is_stmt 1 view -0
+ 142               		.cfi_startproc
+ 143               	/* prologue: function */
+ 144               	/* frame size = 0 */
+ 145               	/* stack size = 0 */
+ 146               	.L__stack_usage = 0
+ 102:i2c.c         ****     // i2c stop
+ 103:i2c.c         ****     TWCR = (1 << TWINT)|(1 << TWSTO)|(1 << TWEN);
+ 147               		.loc 1 103 5 view .LVU49
+ 148               		.loc 1 103 10 is_stmt 0 view .LVU50
+ 149 005a 84E9      		ldi r24,lo8(-108)
+ 150 005c 8093 BC00 		sts 188,r24
+ 151               	/* epilogue start */
+ 104:i2c.c         **** }
+ 152               		.loc 1 104 1 view .LVU51
+ 153 0060 0895      		ret
+ 154               		.cfi_endproc
+ 155               	.LFE3:
+ 157               	.global	i2c_byte
+ 159               	i2c_byte:
+ 160               	.LVL13:
+ 161               	.LFB4:
+ 105:i2c.c         **** /**********************************************
+ 106:i2c.c         ****  Public Function: i2c_byte
+ 107:i2c.c         ****  
+ 108:i2c.c         ****  Purpose: Send byte at TWI/I2C interface
+ 109:i2c.c         ****  
+ 110:i2c.c         ****  Input Parameter:
+ 111:i2c.c         ****  - uint8_t byte: Byte to send to reciever
+ 112:i2c.c         ****  
+ 113:i2c.c         ****  Return Value: none
+ 114:i2c.c         ****  **********************************************/
+ 115:i2c.c         **** void i2c_byte(uint8_t byte){
+ 162               		.loc 1 115 28 is_stmt 1 view -0
+ 163               		.cfi_startproc
+ 164               	/* prologue: function */
+ 165               	/* frame size = 0 */
+ 166               	/* stack size = 0 */
+ 167               	.L__stack_usage = 0
+ 116:i2c.c         ****     TWDR = byte;
+ 168               		.loc 1 116 5 view .LVU53
+ 169               		.loc 1 116 10 is_stmt 0 view .LVU54
+ 170 0062 8093 BB00 		sts 187,r24
+ 117:i2c.c         ****     TWCR = (1 << TWINT)|( 1 << TWEN);
+ 171               		.loc 1 117 5 is_stmt 1 view .LVU55
+ 172               		.loc 1 117 10 is_stmt 0 view .LVU56
+ 173 0066 84E8      		ldi r24,lo8(-124)
+ 174               	.LVL14:
+ 175               		.loc 1 117 10 view .LVU57
+ 176 0068 8093 BC00 		sts 188,r24
+ 177               	.LVL15:
+ 118:i2c.c         ****     uint16_t timeout = F_CPU/F_I2C*2.0;
+ 178               		.loc 1 118 5 is_stmt 1 view .LVU58
+ 119:i2c.c         ****     while((TWCR & (1 << TWINT)) == 0 &&
+ 179               		.loc 1 119 5 view .LVU59
+ 180               		.loc 1 119 10 is_stmt 0 view .LVU60
+ 181 006c 80E4      		ldi r24,lo8(64)
+ 182 006e 91E0      		ldi r25,lo8(1)
+ 183               	.LVL16:
+ 184               	.L13:
+ 185               		.loc 1 119 38 is_stmt 1 view .LVU61
+ 186               		.loc 1 119 12 is_stmt 0 view .LVU62
+ 187 0070 2091 BC00 		lds r18,188
+ 188               		.loc 1 119 38 view .LVU63
+ 189 0074 27FD      		sbrc r18,7
+ 190               	/* epilogue start */
+ 120:i2c.c         **** 		  timeout !=0){
+ 121:i2c.c         **** 		timeout--;
+ 122:i2c.c         **** 		if(timeout == 0){
+ 123:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_BYTE);
+ 124:i2c.c         **** 			return;
+ 125:i2c.c         **** 		}
+ 126:i2c.c         **** 	};
+ 127:i2c.c         **** }
+ 191               		.loc 1 127 1 view .LVU64
+ 192 0076 0895      		ret
+ 193               	.L15:
+ 121:i2c.c         **** 		if(timeout == 0){
+ 194               		.loc 1 121 3 is_stmt 1 view .LVU65
+ 195               	.LVL17:
+ 122:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_BYTE);
+ 196               		.loc 1 122 3 view .LVU66
+ 122:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_BYTE);
+ 197               		.loc 1 122 5 is_stmt 0 view .LVU67
+ 198 0078 0197      		sbiw r24,1
+ 199               	.LVL18:
+ 122:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_BYTE);
+ 200               		.loc 1 122 5 view .LVU68
+ 201 007a 01F4      		brne .L13
+ 123:i2c.c         **** 			return;
+ 202               		.loc 1 123 4 is_stmt 1 view .LVU69
+ 123:i2c.c         **** 			return;
+ 203               		.loc 1 123 18 is_stmt 0 view .LVU70
+ 204 007c 8091 0000 		lds r24,I2C_ErrorCode
+ 205               	.LVL19:
+ 123:i2c.c         **** 			return;
+ 206               		.loc 1 123 18 view .LVU71
+ 207 0080 8460      		ori r24,lo8(4)
+ 208 0082 8093 0000 		sts I2C_ErrorCode,r24
+ 124:i2c.c         **** 		}
+ 209               		.loc 1 124 4 is_stmt 1 view .LVU72
+ 210 0086 0895      		ret
+ 211               		.cfi_endproc
+ 212               	.LFE4:
+ 214               	.global	i2c_readAck
+ 216               	i2c_readAck:
+ 217               	.LFB5:
+ 128:i2c.c         **** /**********************************************
+ 129:i2c.c         ****  Public Function: i2c_readAck
+ 130:i2c.c         ****  
+ 131:i2c.c         ****  Purpose: read acknowledge from TWI/I2C Interface
+ 132:i2c.c         ****  
+ 133:i2c.c         ****  Input Parameter: none
+ 134:i2c.c         ****  
+ 135:i2c.c         ****  Return Value: uint8_t
+ 136:i2c.c         ****   - TWDR: recieved value at TWI/I2C-Interface, 0 at timeout
+ 137:i2c.c         ****   - 0:    Error at read
+ 138:i2c.c         ****  **********************************************/
+ 139:i2c.c         **** uint8_t i2c_readAck(void){
+ 218               		.loc 1 139 26 view -0
+ 219               		.cfi_startproc
+ 220               	/* prologue: function */
+ 221               	/* frame size = 0 */
+ 222               	/* stack size = 0 */
+ 223               	.L__stack_usage = 0
+ 140:i2c.c         ****     TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);
+ 224               		.loc 1 140 5 view .LVU74
+ 225               		.loc 1 140 10 is_stmt 0 view .LVU75
+ 226 0088 84EC      		ldi r24,lo8(-60)
+ 227 008a 8093 BC00 		sts 188,r24
+ 141:i2c.c         ****     uint16_t timeout = F_CPU/F_I2C*2.0;
+ 228               		.loc 1 141 5 is_stmt 1 view .LVU76
+ 229               	.LVL20:
+ 142:i2c.c         ****     while((TWCR & (1 << TWINT)) == 0 &&
+ 230               		.loc 1 142 5 view .LVU77
+ 231               		.loc 1 142 10 is_stmt 0 view .LVU78
+ 232 008e 80E4      		ldi r24,lo8(64)
+ 233 0090 91E0      		ldi r25,lo8(1)
+ 234               	.LVL21:
+ 235               	.L18:
+ 236               		.loc 1 142 38 is_stmt 1 view .LVU79
+ 237               		.loc 1 142 12 is_stmt 0 view .LVU80
+ 238 0092 2091 BC00 		lds r18,188
+ 239               		.loc 1 142 38 view .LVU81
+ 240 0096 27FF      		sbrs r18,7
+ 241 0098 00C0      		rjmp .L20
+ 143:i2c.c         **** 		  timeout !=0){
+ 144:i2c.c         **** 		timeout--;
+ 145:i2c.c         **** 		if(timeout == 0){
+ 146:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READACK);
+ 147:i2c.c         **** 			return 0;
+ 148:i2c.c         **** 		}
+ 149:i2c.c         **** 	};
+ 242               		.loc 1 149 3 is_stmt 1 view .LVU82
+ 150:i2c.c         ****     return TWDR;
+ 243               		.loc 1 150 5 view .LVU83
+ 244               		.loc 1 150 12 is_stmt 0 view .LVU84
+ 245 009a 8091 BB00 		lds r24,187
+ 246               	.LVL22:
+ 247               	/* epilogue start */
+ 151:i2c.c         **** }
+ 248               		.loc 1 151 1 view .LVU85
+ 249 009e 0895      		ret
+ 250               	.LVL23:
+ 251               	.L20:
+ 144:i2c.c         **** 		if(timeout == 0){
+ 252               		.loc 1 144 3 is_stmt 1 view .LVU86
+ 145:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READACK);
+ 253               		.loc 1 145 3 view .LVU87
+ 145:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READACK);
+ 254               		.loc 1 145 5 is_stmt 0 view .LVU88
+ 255 00a0 0197      		sbiw r24,1
+ 256               	.LVL24:
+ 145:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READACK);
+ 257               		.loc 1 145 5 view .LVU89
+ 258 00a2 01F4      		brne .L18
+ 146:i2c.c         **** 			return 0;
+ 259               		.loc 1 146 4 is_stmt 1 view .LVU90
+ 146:i2c.c         **** 			return 0;
+ 260               		.loc 1 146 18 is_stmt 0 view .LVU91
+ 261 00a4 8091 0000 		lds r24,I2C_ErrorCode
+ 262               	.LVL25:
+ 146:i2c.c         **** 			return 0;
+ 263               		.loc 1 146 18 view .LVU92
+ 264 00a8 8860      		ori r24,lo8(8)
+ 265 00aa 8093 0000 		sts I2C_ErrorCode,r24
+ 147:i2c.c         **** 		}
+ 266               		.loc 1 147 4 is_stmt 1 view .LVU93
+ 147:i2c.c         **** 		}
+ 267               		.loc 1 147 11 is_stmt 0 view .LVU94
+ 268 00ae 80E0      		ldi r24,0
+ 269 00b0 0895      		ret
+ 270               		.cfi_endproc
+ 271               	.LFE5:
+ 273               	.global	i2c_readNAck
+ 275               	i2c_readNAck:
+ 276               	.LFB6:
+ 152:i2c.c         **** 
+ 153:i2c.c         ****  /**********************************************
+ 154:i2c.c         ****  Public Function: i2c_readNAck
+ 155:i2c.c         ****  
+ 156:i2c.c         ****  Purpose: read non-acknowledge from TWI/I2C Interface
+ 157:i2c.c         ****  
+ 158:i2c.c         ****  Input Parameter: none
+ 159:i2c.c         ****  
+ 160:i2c.c         ****  Return Value: uint8_t
+ 161:i2c.c         ****   - TWDR: recieved value at TWI/I2C-Interface
+ 162:i2c.c         ****   - 0:    Error at read
+ 163:i2c.c         ****  **********************************************/
+ 164:i2c.c         **** uint8_t i2c_readNAck(void){
+ 277               		.loc 1 164 27 is_stmt 1 view -0
+ 278               		.cfi_startproc
+ 279               	/* prologue: function */
+ 280               	/* frame size = 0 */
+ 281               	/* stack size = 0 */
+ 282               	.L__stack_usage = 0
+ 165:i2c.c         ****     TWCR = (1<<TWINT)|(1<<TWEN);
+ 283               		.loc 1 165 5 view .LVU96
+ 284               		.loc 1 165 10 is_stmt 0 view .LVU97
+ 285 00b2 84E8      		ldi r24,lo8(-124)
+ 286 00b4 8093 BC00 		sts 188,r24
+ 166:i2c.c         ****     uint16_t timeout = F_CPU/F_I2C*2.0;
+ 287               		.loc 1 166 5 is_stmt 1 view .LVU98
+ 288               	.LVL26:
+ 167:i2c.c         ****     while((TWCR & (1 << TWINT)) == 0 &&
+ 289               		.loc 1 167 5 view .LVU99
+ 290               		.loc 1 167 10 is_stmt 0 view .LVU100
+ 291 00b8 80E4      		ldi r24,lo8(64)
+ 292 00ba 91E0      		ldi r25,lo8(1)
+ 293               	.LVL27:
+ 294               	.L23:
+ 295               		.loc 1 167 38 is_stmt 1 view .LVU101
+ 296               		.loc 1 167 12 is_stmt 0 view .LVU102
+ 297 00bc 2091 BC00 		lds r18,188
+ 298               		.loc 1 167 38 view .LVU103
+ 299 00c0 27FF      		sbrs r18,7
+ 300 00c2 00C0      		rjmp .L25
+ 168:i2c.c         **** 		  timeout !=0){
+ 169:i2c.c         **** 		timeout--;
+ 170:i2c.c         **** 		if(timeout == 0){
+ 171:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READNACK);
+ 172:i2c.c         ****             return 0;
+ 173:i2c.c         **** 		}
+ 174:i2c.c         **** 	};
+ 301               		.loc 1 174 3 is_stmt 1 view .LVU104
+ 175:i2c.c         ****     return TWDR;
+ 302               		.loc 1 175 5 view .LVU105
+ 303               		.loc 1 175 12 is_stmt 0 view .LVU106
+ 304 00c4 8091 BB00 		lds r24,187
+ 305               	.LVL28:
+ 306               	/* epilogue start */
+ 176:i2c.c         **** }
+ 307               		.loc 1 176 1 view .LVU107
+ 308 00c8 0895      		ret
+ 309               	.LVL29:
+ 310               	.L25:
+ 169:i2c.c         **** 		if(timeout == 0){
+ 311               		.loc 1 169 3 is_stmt 1 view .LVU108
+ 170:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READNACK);
+ 312               		.loc 1 170 3 view .LVU109
+ 170:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READNACK);
+ 313               		.loc 1 170 5 is_stmt 0 view .LVU110
+ 314 00ca 0197      		sbiw r24,1
+ 315               	.LVL30:
+ 170:i2c.c         **** 			I2C_ErrorCode |= (1 << I2C_READNACK);
+ 316               		.loc 1 170 5 view .LVU111
+ 317 00cc 01F4      		brne .L23
+ 171:i2c.c         ****             return 0;
+ 318               		.loc 1 171 4 is_stmt 1 view .LVU112
+ 171:i2c.c         ****             return 0;
+ 319               		.loc 1 171 18 is_stmt 0 view .LVU113
+ 320 00ce 8091 0000 		lds r24,I2C_ErrorCode
+ 321               	.LVL31:
+ 171:i2c.c         ****             return 0;
+ 322               		.loc 1 171 18 view .LVU114
+ 323 00d2 8061      		ori r24,lo8(16)
+ 324 00d4 8093 0000 		sts I2C_ErrorCode,r24
+ 172:i2c.c         **** 		}
+ 325               		.loc 1 172 13 is_stmt 1 view .LVU115
+ 172:i2c.c         **** 		}
+ 326               		.loc 1 172 20 is_stmt 0 view .LVU116
+ 327 00d8 80E0      		ldi r24,0
+ 328 00da 0895      		ret
+ 329               		.cfi_endproc
+ 330               	.LFE6:
+ 332               	.global	I2C_ErrorCode
+ 333               		.section .bss
+ 336               	I2C_ErrorCode:
+ 337 0000 00        		.zero	1
+ 338               		.text
+ 339               	.Letext0:
+ 340               		.file 2 "/gnu/store/akbmz2yjbz5a9khqsjhl13lr12s6y40s-profile/avr/include/stdint.h"
+ 341               		.file 3 "i2c.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 i2c.c
+     /tmp/ccb1cVm0.s:2      *ABS*:000000000000003e __SP_H__
+     /tmp/ccb1cVm0.s:3      *ABS*:000000000000003d __SP_L__
+     /tmp/ccb1cVm0.s:4      *ABS*:000000000000003f __SREG__
+     /tmp/ccb1cVm0.s:5      *ABS*:0000000000000000 __tmp_reg__
+     /tmp/ccb1cVm0.s:6      *ABS*:0000000000000001 __zero_reg__
+     /tmp/ccb1cVm0.s:12     .text:0000000000000000 i2c_init
+     /tmp/ccb1cVm0.s:15     .text:0000000000000000 .Loc.0
+     /tmp/ccb1cVm0.s:16     .text:0000000000000000 L0
+     /tmp/ccb1cVm0.s:21     .text:0000000000000000 .Loc.1
+     /tmp/ccb1cVm0.s:22     .text:0000000000000000 .Loc.2
+     /tmp/ccb1cVm0.s:23     .text:0000000000000000 .Loc.3
+     /tmp/ccb1cVm0.s:25     .text:0000000000000004 .Loc.4
+     /tmp/ccb1cVm0.s:26     .text:0000000000000004 .Loc.5
+     /tmp/ccb1cVm0.s:27     .text:0000000000000004 .Loc.6
+     /tmp/ccb1cVm0.s:30     .text:000000000000000a .Loc.7
+     /tmp/ccb1cVm0.s:31     .text:000000000000000a .Loc.8
+     /tmp/ccb1cVm0.s:35     .text:0000000000000010 .Loc.9
+     /tmp/ccb1cVm0.s:37     .text:0000000000000012 L0
+     /tmp/ccb1cVm0.s:42     .text:0000000000000012 i2c_start
+     /tmp/ccb1cVm0.s:45     .text:0000000000000012 .Loc.10
+     /tmp/ccb1cVm0.s:46     .text:0000000000000012 L0
+     /tmp/ccb1cVm0.s:51     .text:0000000000000012 .Loc.11
+     /tmp/ccb1cVm0.s:52     .text:0000000000000012 .Loc.12
+     /tmp/ccb1cVm0.s:55     .text:0000000000000018 .Loc.13
+     /tmp/ccb1cVm0.s:57     .text:0000000000000018 .Loc.14
+     /tmp/ccb1cVm0.s:58     .text:0000000000000018 .Loc.15
+     /tmp/ccb1cVm0.s:63     .text:000000000000001c .Loc.16
+     /tmp/ccb1cVm0.s:64     .text:000000000000001c .Loc.17
+     /tmp/ccb1cVm0.s:66     .text:0000000000000020 .Loc.18
+     /tmp/ccb1cVm0.s:69     .text:0000000000000024 .Loc.19
+     /tmp/ccb1cVm0.s:70     .text:0000000000000024 .Loc.20
+     /tmp/ccb1cVm0.s:71     .text:0000000000000024 .Loc.21
+     /tmp/ccb1cVm0.s:73     .text:0000000000000028 .Loc.22
+     /tmp/ccb1cVm0.s:74     .text:0000000000000028 .Loc.23
+     /tmp/ccb1cVm0.s:77     .text:000000000000002a .Loc.24
+     /tmp/ccb1cVm0.s:80     .text:000000000000002e .Loc.25
+     /tmp/ccb1cVm0.s:81     .text:000000000000002e .Loc.26
+     /tmp/ccb1cVm0.s:82     .text:000000000000002e .Loc.27
+     /tmp/ccb1cVm0.s:87     .text:0000000000000032 .Loc.28
+     /tmp/ccb1cVm0.s:88     .text:0000000000000032 .Loc.29
+     /tmp/ccb1cVm0.s:90     .text:0000000000000036 .Loc.30
+     /tmp/ccb1cVm0.s:94     .text:000000000000003a .Loc.31
+     /tmp/ccb1cVm0.s:98     .text:000000000000003c .Loc.32
+     /tmp/ccb1cVm0.s:99     .text:000000000000003c .Loc.33
+     /tmp/ccb1cVm0.s:100    .text:000000000000003c .Loc.34
+     /tmp/ccb1cVm0.s:104    .text:0000000000000040 .Loc.35
+     /tmp/ccb1cVm0.s:106    .text:0000000000000042 .Loc.36
+     /tmp/ccb1cVm0.s:107    .text:0000000000000042 .Loc.37
+     /tmp/ccb1cVm0.s:336    .bss:0000000000000000 I2C_ErrorCode
+     /tmp/ccb1cVm0.s:110    .text:0000000000000046 .Loc.38
+     /tmp/ccb1cVm0.s:114    .text:0000000000000048 .Loc.39
+     /tmp/ccb1cVm0.s:116    .text:000000000000004c .Loc.40
+     /tmp/ccb1cVm0.s:120    .text:000000000000004e .Loc.41
+     /tmp/ccb1cVm0.s:121    .text:000000000000004e .Loc.42
+     /tmp/ccb1cVm0.s:122    .text:000000000000004e .Loc.43
+     /tmp/ccb1cVm0.s:125    .text:0000000000000050 .Loc.44
+     /tmp/ccb1cVm0.s:127    .text:0000000000000052 .Loc.45
+     /tmp/ccb1cVm0.s:128    .text:0000000000000052 .Loc.46
+     /tmp/ccb1cVm0.s:131    .text:0000000000000056 .Loc.47
+     /tmp/ccb1cVm0.s:134    .text:000000000000005a L0
+     /tmp/ccb1cVm0.s:139    .text:000000000000005a i2c_stop
+     /tmp/ccb1cVm0.s:141    .text:000000000000005a .Loc.48
+     /tmp/ccb1cVm0.s:142    .text:000000000000005a L0
+     /tmp/ccb1cVm0.s:147    .text:000000000000005a .Loc.49
+     /tmp/ccb1cVm0.s:148    .text:000000000000005a .Loc.50
+     /tmp/ccb1cVm0.s:152    .text:0000000000000060 .Loc.51
+     /tmp/ccb1cVm0.s:154    .text:0000000000000062 L0
+     /tmp/ccb1cVm0.s:159    .text:0000000000000062 i2c_byte
+     /tmp/ccb1cVm0.s:162    .text:0000000000000062 .Loc.52
+     /tmp/ccb1cVm0.s:163    .text:0000000000000062 L0
+     /tmp/ccb1cVm0.s:168    .text:0000000000000062 .Loc.53
+     /tmp/ccb1cVm0.s:169    .text:0000000000000062 .Loc.54
+     /tmp/ccb1cVm0.s:171    .text:0000000000000066 .Loc.55
+     /tmp/ccb1cVm0.s:172    .text:0000000000000066 .Loc.56
+     /tmp/ccb1cVm0.s:175    .text:0000000000000068 .Loc.57
+     /tmp/ccb1cVm0.s:178    .text:000000000000006c .Loc.58
+     /tmp/ccb1cVm0.s:179    .text:000000000000006c .Loc.59
+     /tmp/ccb1cVm0.s:180    .text:000000000000006c .Loc.60
+     /tmp/ccb1cVm0.s:185    .text:0000000000000070 .Loc.61
+     /tmp/ccb1cVm0.s:186    .text:0000000000000070 .Loc.62
+     /tmp/ccb1cVm0.s:188    .text:0000000000000074 .Loc.63
+     /tmp/ccb1cVm0.s:191    .text:0000000000000076 .Loc.64
+     /tmp/ccb1cVm0.s:194    .text:0000000000000078 .Loc.65
+     /tmp/ccb1cVm0.s:196    .text:0000000000000078 .Loc.66
+     /tmp/ccb1cVm0.s:197    .text:0000000000000078 .Loc.67
+     /tmp/ccb1cVm0.s:200    .text:000000000000007a .Loc.68
+     /tmp/ccb1cVm0.s:202    .text:000000000000007c .Loc.69
+     /tmp/ccb1cVm0.s:203    .text:000000000000007c .Loc.70
+     /tmp/ccb1cVm0.s:206    .text:0000000000000080 .Loc.71
+     /tmp/ccb1cVm0.s:209    .text:0000000000000086 .Loc.72
+     /tmp/ccb1cVm0.s:211    .text:0000000000000088 L0
+     /tmp/ccb1cVm0.s:216    .text:0000000000000088 i2c_readAck
+     /tmp/ccb1cVm0.s:218    .text:0000000000000088 .Loc.73
+     /tmp/ccb1cVm0.s:219    .text:0000000000000088 L0
+     /tmp/ccb1cVm0.s:224    .text:0000000000000088 .Loc.74
+     /tmp/ccb1cVm0.s:225    .text:0000000000000088 .Loc.75
+     /tmp/ccb1cVm0.s:228    .text:000000000000008e .Loc.76
+     /tmp/ccb1cVm0.s:230    .text:000000000000008e .Loc.77
+     /tmp/ccb1cVm0.s:231    .text:000000000000008e .Loc.78
+     /tmp/ccb1cVm0.s:236    .text:0000000000000092 .Loc.79
+     /tmp/ccb1cVm0.s:237    .text:0000000000000092 .Loc.80
+     /tmp/ccb1cVm0.s:239    .text:0000000000000096 .Loc.81
+     /tmp/ccb1cVm0.s:242    .text:000000000000009a .Loc.82
+     /tmp/ccb1cVm0.s:243    .text:000000000000009a .Loc.83
+     /tmp/ccb1cVm0.s:244    .text:000000000000009a .Loc.84
+     /tmp/ccb1cVm0.s:248    .text:000000000000009e .Loc.85
+     /tmp/ccb1cVm0.s:252    .text:00000000000000a0 .Loc.86
+     /tmp/ccb1cVm0.s:253    .text:00000000000000a0 .Loc.87
+     /tmp/ccb1cVm0.s:254    .text:00000000000000a0 .Loc.88
+     /tmp/ccb1cVm0.s:257    .text:00000000000000a2 .Loc.89
+     /tmp/ccb1cVm0.s:259    .text:00000000000000a4 .Loc.90
+     /tmp/ccb1cVm0.s:260    .text:00000000000000a4 .Loc.91
+     /tmp/ccb1cVm0.s:263    .text:00000000000000a8 .Loc.92
+     /tmp/ccb1cVm0.s:266    .text:00000000000000ae .Loc.93
+     /tmp/ccb1cVm0.s:267    .text:00000000000000ae .Loc.94
+     /tmp/ccb1cVm0.s:270    .text:00000000000000b2 L0
+     /tmp/ccb1cVm0.s:275    .text:00000000000000b2 i2c_readNAck
+     /tmp/ccb1cVm0.s:277    .text:00000000000000b2 .Loc.95
+     /tmp/ccb1cVm0.s:278    .text:00000000000000b2 L0
+     /tmp/ccb1cVm0.s:283    .text:00000000000000b2 .Loc.96
+     /tmp/ccb1cVm0.s:284    .text:00000000000000b2 .Loc.97
+     /tmp/ccb1cVm0.s:287    .text:00000000000000b8 .Loc.98
+     /tmp/ccb1cVm0.s:289    .text:00000000000000b8 .Loc.99
+     /tmp/ccb1cVm0.s:290    .text:00000000000000b8 .Loc.100
+     /tmp/ccb1cVm0.s:295    .text:00000000000000bc .Loc.101
+     /tmp/ccb1cVm0.s:296    .text:00000000000000bc .Loc.102
+     /tmp/ccb1cVm0.s:298    .text:00000000000000c0 .Loc.103
+     /tmp/ccb1cVm0.s:301    .text:00000000000000c4 .Loc.104
+     /tmp/ccb1cVm0.s:302    .text:00000000000000c4 .Loc.105
+     /tmp/ccb1cVm0.s:303    .text:00000000000000c4 .Loc.106
+     /tmp/ccb1cVm0.s:307    .text:00000000000000c8 .Loc.107
+     /tmp/ccb1cVm0.s:311    .text:00000000000000ca .Loc.108
+     /tmp/ccb1cVm0.s:312    .text:00000000000000ca .Loc.109
+     /tmp/ccb1cVm0.s:313    .text:00000000000000ca .Loc.110
+     /tmp/ccb1cVm0.s:316    .text:00000000000000cc .Loc.111
+     /tmp/ccb1cVm0.s:318    .text:00000000000000ce .Loc.112
+     /tmp/ccb1cVm0.s:319    .text:00000000000000ce .Loc.113
+     /tmp/ccb1cVm0.s:322    .text:00000000000000d2 .Loc.114
+     /tmp/ccb1cVm0.s:325    .text:00000000000000d8 .Loc.115
+     /tmp/ccb1cVm0.s:326    .text:00000000000000d8 .Loc.116
+     /tmp/ccb1cVm0.s:329    .text:00000000000000dc L0
+     /tmp/ccb1cVm0.s:342    .text:00000000000000dc L0
+                     .debug_frame:0000000000000000 L0
+     /tmp/ccb1cVm0.s:97     .text:000000000000003c .L5
+     /tmp/ccb1cVm0.s:119    .text:000000000000004e .L7
+     /tmp/ccb1cVm0.s:62     .text:000000000000001c .L3
+     /tmp/ccb1cVm0.s:86     .text:0000000000000032 .L6
+     /tmp/ccb1cVm0.s:113    .text:0000000000000048 .L10
+     /tmp/ccb1cVm0.s:184    .text:0000000000000070 .L13
+     /tmp/ccb1cVm0.s:251    .text:00000000000000a0 .L20
+     /tmp/ccb1cVm0.s:235    .text:0000000000000092 .L18
+     /tmp/ccb1cVm0.s:310    .text:00000000000000ca .L25
+     /tmp/ccb1cVm0.s:294    .text:00000000000000bc .L23
+     /tmp/ccb1cVm0.s:564    .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+     /tmp/ccb1cVm0.s:8      .text:0000000000000000 .Ltext0
+     /tmp/ccb1cVm0.s:339    .text:00000000000000dc .Letext0
+     /tmp/ccb1cVm0.s:1107   .debug_line:0000000000000000 .Ldebug_line0
+     /tmp/ccb1cVm0.s:276    .text:00000000000000b2 .LFB6
+     /tmp/ccb1cVm0.s:330    .text:00000000000000dc .LFE6
+     /tmp/ccb1cVm0.s:788    .debug_loc:000000000000000a .LLST5
+     /tmp/ccb1cVm0.s:777    .debug_loc:0000000000000000 .LVUS5
+     /tmp/ccb1cVm0.s:217    .text:0000000000000088 .LFB5
+     /tmp/ccb1cVm0.s:271    .text:00000000000000b2 .LFE5
+     /tmp/ccb1cVm0.s:841    .debug_loc:0000000000000067 .LLST4
+     /tmp/ccb1cVm0.s:830    .debug_loc:000000000000005d .LVUS4
+     /tmp/ccb1cVm0.s:161    .text:0000000000000062 .LFB4
+     /tmp/ccb1cVm0.s:212    .text:0000000000000088 .LFE4
+     /tmp/ccb1cVm0.s:890    .debug_loc:00000000000000c0 .LLST2
+     /tmp/ccb1cVm0.s:883    .debug_loc:00000000000000ba .LVUS2
+     /tmp/ccb1cVm0.s:918    .debug_loc:00000000000000f5 .LLST3
+     /tmp/ccb1cVm0.s:909    .debug_loc:00000000000000ed .LVUS3
+     /tmp/ccb1cVm0.s:140    .text:000000000000005a .LFB3
+     /tmp/ccb1cVm0.s:155    .text:0000000000000062 .LFE3
+     /tmp/ccb1cVm0.s:44     .text:0000000000000012 .LFB2
+     /tmp/ccb1cVm0.s:135    .text:000000000000005a .LFE2
+     /tmp/ccb1cVm0.s:962    .debug_loc:0000000000000142 .LLST0
+     /tmp/ccb1cVm0.s:951    .debug_loc:0000000000000138 .LVUS0
+     /tmp/ccb1cVm0.s:1013   .debug_loc:000000000000019c .LLST1
+     /tmp/ccb1cVm0.s:992    .debug_loc:0000000000000188 .LVUS1
+     /tmp/ccb1cVm0.s:13     .text:0000000000000000 .LFB1
+     /tmp/ccb1cVm0.s:38     .text:0000000000000012 .LFE1
+     /tmp/ccb1cVm0.s:288    .text:00000000000000b8 .LVL26
+     /tmp/ccb1cVm0.s:293    .text:00000000000000bc .LVL27
+     /tmp/ccb1cVm0.s:305    .text:00000000000000c8 .LVL28
+     /tmp/ccb1cVm0.s:309    .text:00000000000000ca .LVL29
+     /tmp/ccb1cVm0.s:315    .text:00000000000000cc .LVL30
+     /tmp/ccb1cVm0.s:321    .text:00000000000000d2 .LVL31
+     /tmp/ccb1cVm0.s:229    .text:000000000000008e .LVL20
+     /tmp/ccb1cVm0.s:234    .text:0000000000000092 .LVL21
+     /tmp/ccb1cVm0.s:246    .text:000000000000009e .LVL22
+     /tmp/ccb1cVm0.s:250    .text:00000000000000a0 .LVL23
+     /tmp/ccb1cVm0.s:256    .text:00000000000000a2 .LVL24
+     /tmp/ccb1cVm0.s:262    .text:00000000000000a8 .LVL25
+     /tmp/ccb1cVm0.s:160    .text:0000000000000062 .LVL13
+     /tmp/ccb1cVm0.s:174    .text:0000000000000068 .LVL14
+     /tmp/ccb1cVm0.s:177    .text:000000000000006c .LVL15
+     /tmp/ccb1cVm0.s:183    .text:0000000000000070 .LVL16
+     /tmp/ccb1cVm0.s:195    .text:0000000000000078 .LVL17
+     /tmp/ccb1cVm0.s:199    .text:000000000000007a .LVL18
+     /tmp/ccb1cVm0.s:205    .text:0000000000000080 .LVL19
+     /tmp/ccb1cVm0.s:43     .text:0000000000000012 .LVL0
+     /tmp/ccb1cVm0.s:76     .text:000000000000002a .LVL3
+     /tmp/ccb1cVm0.s:79     .text:000000000000002e .LVL4
+     /tmp/ccb1cVm0.s:96     .text:000000000000003c .LVL6
+     /tmp/ccb1cVm0.s:109    .text:0000000000000046 .LVL8
+     /tmp/ccb1cVm0.s:56     .text:0000000000000018 .LVL1
+     /tmp/ccb1cVm0.s:61     .text:000000000000001c .LVL2
+     /tmp/ccb1cVm0.s:85     .text:0000000000000032 .LVL5
+     /tmp/ccb1cVm0.s:103    .text:0000000000000040 .LVL7
+     /tmp/ccb1cVm0.s:112    .text:0000000000000048 .LVL9
+     /tmp/ccb1cVm0.s:118    .text:000000000000004e .LVL10
+     /tmp/ccb1cVm0.s:124    .text:0000000000000050 .LVL11
+     /tmp/ccb1cVm0.s:130    .text:0000000000000056 .LVL12
+     /tmp/ccb1cVm0.s:343    .debug_info:0000000000000000 .Ldebug_info0
+
+UNDEFINED SYMBOLS
+__do_clear_bss
