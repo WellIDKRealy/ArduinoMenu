@@ -1,3 +1,5 @@
+#include <util/delay.h>
+
 #include "keypad.h"
 
 keypad_t make_keypad(dpin_t* cols, uint8_t cols_no, dpin_t* rows, uint8_t rows_no) {
@@ -25,13 +27,44 @@ bool key_pressed(keypad_t* keypad, uint8_t col, uint8_t row) {
   return status;
 }
 
-// mask is 2d array of size rows_no x cols_no
+// mask is 2d array of size cols_no x rows_no
 void key_scan(keypad_t* keypad, bool* mask) {
   for(uint8_t col = 0; col < keypad->cols_no; col++) {
 	pin_pullup(keypad->cols[col], false);
 	for(uint8_t row = 0; row < keypad->rows_no; row++) {
-	  mask[row*keypad->cols_no + col] = !pin_read(keypad->rows[row]);
+	  mask[col*keypad->rows_no + row] = !pin_read(keypad->rows[row]);
 	}
 	pin_pullup(keypad->cols[col], true);
   }
+}
+
+// for keypads with less than 17 options
+uint16_t key_scan16(keypad_t* keypad) {
+  uint16_t result = 0;
+
+  for(uint8_t col = 0; col < keypad->cols_no; col++) {
+	pin_pullup(keypad->cols[col], false);
+	for(uint8_t row = 0; row < keypad->rows_no; row++) {
+	  result = result << 1;
+	  result |= !pin_read(keypad->rows[row]);
+	}
+	pin_pullup(keypad->cols[col], true);
+  }
+
+  return result;
+}
+
+uint8_t key_get_first(keypad_t* keypad) {
+  for(uint8_t col = 0; col < keypad->cols_no; col++) {
+	pin_pullup(keypad->cols[col], false);
+	for(uint8_t row = 0; row < keypad->rows_no; row++) {
+	  if(!pin_read(keypad->rows[row])) {
+		pin_pullup(keypad->cols[col], true);
+		return col*keypad->rows_no + row;
+	  }
+	}
+	pin_pullup(keypad->cols[col], true);
+  }
+
+  return 255;
 }

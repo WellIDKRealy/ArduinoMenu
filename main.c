@@ -11,43 +11,68 @@
 #define COLS_NO 3
 #define ROWS_NO 4
 
+static dpin_t COLS[COLS_NO] = {7, 9, 5};
+static dpin_t ROWS[ROWS_NO] = {8, 3, 4, 6};
+
+const char cmap[COLS_NO*ROWS_NO] = {
+  '#', '9', '6', '3',
+  '0', '8', '5', '2',
+  '*', '7', '4', '1',
+};
+
+/* const char cmap[COLS_NO*ROWS_NO] = { */
+/*   '1', '2', '3', */
+/*   '4', '5', '6', */
+/*   '7', '8', '9', */
+/*   '*', '0', '#', */
+/* }; */
+
 int main(void) {
-  /* out_pin_t COLS[COLS_NO] = { */
-  /*	{&DDRB, &PORTB, DDB1}, // D9 1 */
-  /*	{&DDRD, &PORTD, DDD7}, // D7 3 */
-  /*	{&DDRD, &PORTD, DDD5}  // D5 5 */
-  /* }; */
-
-  /* in_pin_t ROWS[ROWS_NO] = { */
-  /*	{&DDRB, &PORTB, &PINB, DDB0}, // D8 2 */
-  /*	{&DDRD, &PORTD, &PIND, DDD6}, // D6 4 */
-  /*	{&DDRD, &PORTD, &PIND, DDD4}, // D4 6 */
-  /*	{&DDRD, &PORTD, &PIND, DDD3}  // D3 7 */
-  /* }; */
-
-  dpin_t COLS[COLS_NO] = {7, 9, 5};
-  dpin_t ROWS[ROWS_NO] = {8, 3, 4, 6};
-
   keypad_t keypad = make_keypad(COLS, COLS_NO, ROWS, ROWS_NO);
   init_keypad(&keypad);
 
   lcd_init(LCD_DISP_ON);
 
-  bool mask[COLS_NO*ROWS_NO] = {false};
+  uint16_t last_mask = 0;
+  uint16_t current_mask, diff_mask;
 
   while(true) {
-	_delay_ms(10);
+	_delay_ms(100);
 
-	key_scan(&keypad, mask);
+	current_mask = key_scan16(&keypad);
+	diff_mask = ~last_mask & current_mask;
 
-	for(int col = 0; col < COLS_NO; col++) {
-	  for(int row = 0; row < ROWS_NO; row++) {
-		lcd_gotoxy(col, row);
-		lcd_puts(mask[row*COLS_NO + col] ? " " : "#");
+	for(uint8_t i = 0; i < COLS_NO*ROWS_NO; i++) {
+	  if((diff_mask >> i) & 1) {
+		lcd_putc(cmap[i]);
 	  }
 	}
 
+	last_mask = current_mask;
   }
+
+  /* bool mask[ROWS_NO*COLS_NO]; */
+  /* char str[32]; */
+
+  /* while(true) { */
+  /*	_delay_ms(10); */
+
+  /*	key_scan(&keypad, mask); */
+
+  /*	for(int col = 0; col < COLS_NO; col++) { */
+  /*	  for(int row = 0; row < ROWS_NO; row++) { */
+  /*		lcd_gotoxy(col, row); */
+  /*		lcd_puts(mask[col*ROWS_NO + row] ? " " : "#"); */
+  /*	  } */
+  /*	} */
+
+  /*	lcd_gotoxy(5, 0); */
+
+  /*	uint8_t index = key_get_first(&keypad); */
+  /*	sprintf(str, "%i  ", index); */
+  /*	lcd_puts(str); */
+
+  /* } */
 
   /* while(true) { */
   /*	_delay_ms(16); */
