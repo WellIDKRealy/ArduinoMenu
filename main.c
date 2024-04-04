@@ -10,8 +10,16 @@
 #include "font.h"
 #include "keypad.h"
 
+
+#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
+
+
+#define TEXT_HEIGHT (DISPLAY_HEIGHT/8)
+#define TEXT_WIDTH (DISPLAY_WIDTH/sizeof(FONT[0]))
+
 #define COLS_NO 3
 #define ROWS_NO 4
+
 
 static dpin_t COLS[COLS_NO] = {7, 9, 5};
 static dpin_t ROWS[ROWS_NO] = {8, 3, 4, 6};
@@ -22,110 +30,175 @@ const char cmap[COLS_NO*ROWS_NO] = {
   '*', '7', '4', '1',
 };
 
-#define TEXT_HEIGHT (DISPLAY_HEIGHT/8)
-#define TEXT_WIDTH (DISPLAY_WIDTH/sizeof(FONT[0]))
 
-#define MENU_ITEMS_NO 11
+enum MenuItemT {Empty = 0, Program = 1, Menu = 2};
 
-const char* MENU_ITEMS[MENU_ITEMS_NO] = {
-  "TEST",
-  "TEST2",
-  "TEST3",
-  "TEST4",
-  "TEST5",
-  "TEST6",
-  "TEST7",
-  "TEST8",
-  "TEST9",
-  "TEST10",
-  "TEST11",
+typedef struct MenuEmpty {
+  // Shared
+  enum MenuItemT type;
+  char* name;
+} menu_empty_t;
+
+
+typedef struct MenuProgram {
+  // Shared
+  enum MenuItemT type;
+  char* name;
+
+  void (*program_f)();
+} menu_program_t;
+
+
+typedef struct Menu {
+  // Shared
+  enum MenuItemT type;
+  char* name;
+
+  struct Menu* father;
+
+  uint8_t origin;
+  uint8_t selected;
+
+  uint8_t size;
+  union MenuItem items[];
+
+} menu_t;
+
+typedef union MenuItem {
+  struct MenuEmpty empty;
+  struct MenuProgram program;
+  struct Menu menu;
+} menu_item_t;
+
+
+void set_fathers(menu_t* menu) {
+  for(uint8_t i = 0; i < menu->size; i++) {
+	if(menu->items[i].type == Menu) {
+	  menu_t* val = (menu_t*)&menu->items[i];
+	  val->father = menu;
+	  set_fathers(val);
+	}
+  }
+}
+
+static menu_t GAMES_MENU = {
+  Menu,
+  "Games",
+  NULL,
+  0,
+  0,
+  8,
+  {
+	(menu_empty_t){Empty, "GAME1"},
+	(menu_empty_t){Empty, "GAME2"},
+	(menu_empty_t){Empty, "GAME3"},
+	(menu_empty_t){Empty, "GAME4"},
+	(menu_empty_t){Empty, "GAME5"},
+	(menu_empty_t){Empty, "GAME6"},
+	(menu_empty_t){Empty, "GAME7"},
+	(menu_empty_t){Empty, "GAME8"},
+  }
 };
 
-static uint8_t SELECTED = 0;
-static uint8_t ORIGIN = 0;
+static menu_t DEFAULT_MENU = {
+  Menu,
+  "Default",
+  NULL,
+  0,
+  0,
+  8,
+  {
+	GAMES_MENU,
+	(menu_empty_t){Empty, "TEST2"},
+	(menu_empty_t){Empty, "TEST3"},
+	(menu_empty_t){Empty, "TEST4"},
+	(menu_empty_t){Empty, "TEST5"},
+	(menu_empty_t){Empty, "TEST6"},
+	(menu_empty_t){Empty, "TEST7"},
+	(menu_empty_t){Empty, "TEST8"},
+  }
+};
 
-#define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
 
-static inline void draw_menu(void) {
+static menu_t* SELECTED_MENU = &DEFAULT_MENU;
+
+static inline void clear_selected(menu_t* menu) {
+  lcd_gotoxy(0, menu->selected - menu->origin + 1);
+  lcd_putc(' ');
+}
+
+static inline void draw_selected(menu_t* menu) {
+  lcd_gotoxy(0, menu->selected - menu->origin + 1);
+  lcd_putc('>');
+}
+
+static inline void draw_menu(menu_t* menu) {
   lcd_clear_buffer();
 
-  char tmp[32];
+  // header
+  char header[TEXT_WIDTH];
+  sprintf(header, "menu: %s", menu->name);
 
-  sprintf(tmp, "%i %i %i %i", ORIGIN, SELECTED, TEXT_WIDTH, TEXT_HEIGHT);
+  lcd_gotoxy(0, 0);
+  lcd_puts(header);
 
-  lcd_gotoxy(TEXT_WIDTH - strlen(tmp), 0);
-  lcd_puts(tmp);
-
-  for(uint8_t i = ORIGIN; i < MIN(MENU_ITEMS_NO, ORIGIN + TEXT_HEIGHT); i++) {
-	lcd_gotoxy(1, i - ORIGIN);
-	lcd_puts(MENU_ITEMS[i]);
+  for(uint8_t i = menu->origin; i < MIN(menu->size, menu->origin + TEXT_HEIGHT - 1); i++) {
+	lcd_gotoxy(1, i - menu->origin + 1);
+	lcd_puts(menu->items[i].name);
   }
 
-  lcd_gotoxy(0, SELECTED - ORIGIN);
-  lcd_putc('>');
+  draw_selected(menu);
 }
 
-static inline void update_origin(void) {
-  if(SELECTED + 2 - ORIGIN >= TEXT_HEIGHT) {
-  } else {
-	ORIGIN = 0;
-  }
-}
-
-static inline void inc_selected(void) {
-  if(SELECTED >= MENU_ITEMS_NO - 1) {
+static inline void inc_selected(menu_t* menu) {
+  if(menu->selected + 1 >= menu->size) {
 	return;
   }
 
-  SELECTED += 1;
+  clear_selected(menu);
 
-  if(SELECTED + 2 - ORIGIN >= TEXT_HEIGHT &&
-	 ORIGIN < MENU_ITEMS_NO - TEXT_HEIGHT) {
-	ORIGIN += 1;
+  menu->selected += 1;
 
-	draw_menu();
+  if(menu->selected - menu->origin + 2 >= TEXT_HEIGHT - 1) {
+	menu->origin += 1;
 
+	draw_menu(menu);
 	return;
   }
 
-  lcd_gotoxy(0, SELECTED - ORIGIN - 1);
-  lcd_putc(' ');
-
-  lcd_gotoxy(0, SELECTED - ORIGIN);
-  lcd_putc('>');
+  draw_selected(menu);
 }
 
-static inline void dec_selected(void) {
-  if(SELECTED <= 0) {
+static inline void dec_selected(menu_t* menu) {
+  if(menu->selected <= 0) {
 	return;
   }
 
-  SELECTED -= 1;
+  clear_selected(menu);
 
-  if(SELECTED <= ORIGIN + 2 && ORIGIN > 0) {
-	ORIGIN -= 1;
+  menu->selected -= 1;
 
-	draw_menu();
+  if(menu->selected - menu->origin < 2 && menu->origin > 0) {
+	menu->origin -= 1;
 
+	draw_menu(menu);
 	return;
   }
 
-  lcd_gotoxy(0, SELECTED - ORIGIN + 1);
-  lcd_putc(' ');
-
-  lcd_gotoxy(0, SELECTED - ORIGIN);
-  lcd_putc('>');
+  draw_selected(menu);
 }
+
 
 int main(void) {
+  // idk if there is better solution
+  set_fathers(&DEFAULT_MENU);
+
   keypad_t keypad = make_keypad(COLS, COLS_NO, ROWS, ROWS_NO);
   init_keypad(&keypad);
 
   lcd_init(LCD_DISP_ON);
 
-  update_origin();
-
-  draw_menu();
+  draw_menu(SELECTED_MENU);
   lcd_display();
 
   uint16_t last_mask = 0;
@@ -151,10 +224,32 @@ int main(void) {
 
 	switch(pressed) {
 	case '2':
-	  dec_selected();
+	  dec_selected(SELECTED_MENU);
 	  break;
 	case '8':
-	  inc_selected();
+	  inc_selected(SELECTED_MENU);
+	  break;
+
+	case '4':
+	  if(SELECTED_MENU->father == NULL) {
+		break;
+	  }
+	  SELECTED_MENU = SELECTED_MENU->father;
+	  draw_menu(SELECTED_MENU);
+	  break;
+	case '6':
+	  menu_item_t val = SELECTED_MENU->items[SELECTED_MENU->selected];
+
+	  switch(val.type) {
+	  case Menu:
+		SELECTED_MENU = (menu_t*)&val;
+
+		draw_menu(SELECTED_MENU);
+		break;
+
+	  default:
+		break;
+	  }
 	  break;
 
 	default:
