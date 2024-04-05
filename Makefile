@@ -35,10 +35,10 @@ flash_real: main.hex
 
 
 main.elf: ${CSRC} ${CPPSRC}
-	avr-gcc -c ${CSRC} ${FLAGS} ${CFLAGS}
-	avr-g++ -c ${CPPSRC} ${FLAGS} ${CPPFLAGS}
+	avr-gcc -o main.elf ${CSRC} ${FLAGS} ${CFLAGS}
+	#avr-g++ -c ${CPPSRC} ${FLAGS} ${CPPFLAGS}
 
-	avr-g++ -o main.elf $(pathsubst %c,%.o,${CSRC}) $(pathsubst %cpp,%.o,${CPPSRC}) ${CPPFLAGS}
+	#avr-g++ -o main.elf $(pathsubst %c,%.o,${CSRC}) $(pathsubst %cpp,%.o,${CPPSRC}) ${CPPFLAGS}
 
 main.hex: main.elf
 	avr-objcopy -O ihex -R .eeprom main.elf main.hex

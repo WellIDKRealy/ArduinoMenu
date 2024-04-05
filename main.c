@@ -37,68 +37,85 @@ enum MenuItemType {
   MenuType,
 };
 
-class MenuItem {
-public:
+typedef union MenuItemU {
+  struct MenuItem* menu_item;
+  struct MenuProgram* menu_program;
+  struct Menu* menu;
+} menu_item_union_t;
+
+typedef struct MenuItem {
+  enum MenuItemType type;
+  char* name;
+} menu_item_t;
+
+static inline menu_item_t MenuItem(char* name) {
+  return (struct MenuItem){MenuItemType, name};
+}
+
+typedef struct MenuProgram {
   enum MenuItemType type;
   char* name;
 
-  MenuItem(char* name, enum MenuItemType type = MenuItemType) : type(type), name(name) {}
-};
-
-class MenuProgram : public MenuItem {
-public:
   void (*program_f)();
+} menu_program_t;
 
-  MenuProgram(char* name, void (*program_f)()) : MenuItem(name, MenuProgramType), program_f(program_f) {}
+static inline menu_program_t MenuProgram(char* name, void (*program_f)()) {
+  return (struct MenuProgram){MenuProgramType, name, program_f};
+}
+
+typedef struct Menu {
+  enum MenuItemType type;
+  char* name;
+
+  uint8_t origin;
+  uint8_t selected;
+
+  uint8_t size;
+  menu_item_union_t items[];
+} menu_t;
+
+static menu_t GAMES_MENU = {
+  MenuType,
+  "Games",
+  0,
+  0,
+  8,
+  {
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game1"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game2"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game3"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game4"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game5"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game6"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game7"},
+	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game8"},
+  }
 };
 
-template<uint8_t arr_size>
- class Menu : public MenuItem {
- public:
-   uint8_t origin;
-   uint8_t selected;
+static menu_t DEFAULT_MENU = {
+  MenuType,
+  "Default",
+  0,
+  0,
+  1,
+  {
+	(menu_item_union_t)&GAMES_MENU,
+  }
+};
 
-   uint8_t size;
-   MenuItem items[arr_size];
+static menu_t* SELECTED_MENU = &DEFAULT_MENU;
 
-   Menu(char* name, MenuItem[arr_size] items, uint8_t origin = 0, uint8_t selected = 0) : MenuItem(name, MenuType), origin(origin), selected(selected), size(arr_size), items(items) {}
- };
-
-
-static Menu<8> GAMES_MENU = Menu("Games", (MenuItem[8]){
-  MenuItem("Game1"),
-  MenuItem("Game2"),
-  MenuItem("Game3"),
-  MenuItem("Game4"),
-  MenuItem("Game5"),
-  MenuItem("Game6"),
-  MenuItem("Game7"),
-  MenuItem("Game8")},
-								 0, 0);
-
-static Menu<8> DEFAULT_MENU = Menu("Default", (MenuItem[8]){
-  GAMES_MENU,
-  MenuItem("TEST2"),
-  MenuItem("TEST3"),
-  MenuItem("TEST4"),
-  MenuItem("TEST5"),
-  MenuItem("TEST6"),
-  MenuItem("TEST7"),
-  MenuItem("TEST8")});
-
-static Menu* SELECTED_MENU = &DEFAULT_MENU;
-
-static inline void clear_selected(Menu* menu) {
+static inline void clear_selected(menu_t* menu) {
   lcd_gotoxy(0, menu->selected - menu->origin + 1);
   lcd_putc(' ');
 }
 
-static inline void draw_selected(Menu* menu) {
+static inline void draw_selected(menu_t* menu) {
   lcd_gotoxy(0, menu->selected - menu->origin + 1);
   lcd_putc('>');
 }
 
-static inline void draw_menu(Menu* menu) {
+static inline void draw_menu(menu_t* menu) {
   lcd_clear_buffer();
 
   // header
@@ -110,13 +127,13 @@ static inline void draw_menu(Menu* menu) {
 
   for(uint8_t i = menu->origin; i < MIN(menu->size, menu->origin + TEXT_HEIGHT - 1); i++) {
 	lcd_gotoxy(1, i - menu->origin + 1);
-	lcd_puts(menu->items[i].name);
+	lcd_puts(menu->items[i].menu_item->name);
   }
 
   draw_selected(menu);
 }
 
-static inline void inc_selected(Menu* menu) {
+static inline void inc_selected(menu_t* menu) {
   if(menu->selected + 1 >= menu->size) {
 	return;
   }
@@ -135,7 +152,7 @@ static inline void inc_selected(Menu* menu) {
   draw_selected(menu);
 }
 
-static inline void dec_selected(Menu* menu) {
+static inline void dec_selected(menu_t* menu) {
   if(menu->selected <= 0) {
 	return;
   }
@@ -192,11 +209,11 @@ int main(void) {
 	  inc_selected(SELECTED_MENU);
 	  break;
 	case '6':
-	  MenuItem val = SELECTED_MENU->items[SELECTED_MENU->selected];
+	  menu_item_union_t val = SELECTED_MENU->items[SELECTED_MENU->selected];
 
-	  switch(val.type) {
+	  switch(val.menu_item->type) {
 	  case MenuType:
-		SELECTED_MENU = &val;
+		SELECTED_MENU = val.menu;
 
 		draw_menu(SELECTED_MENU);
 		break;
