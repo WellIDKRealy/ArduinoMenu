@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 // PINOUT https://www.teachmemicro.com/wp-content/uploads/2019/06/Arduino-Nano-pinout-3.jpg
 
@@ -218,7 +219,7 @@ void snake(void) {
   return;
 }
 
-void test(void) {
+void hello_world(void) {
   lcd_clear_buffer();
 
   lcd_puts("Hello World");
@@ -227,22 +228,176 @@ void test(void) {
   _delay_ms(1000);
 }
 
+#define RECT_SIZE 20
+
+#define ROTATED_X(x, y, r_x, r_y) (x)*(r_x) - (y)*(r_y)
+#define ROTATED_Y(x, y, r_x, r_y) (x)*(r_y) + (y)*(r_x)
+
+void square_disp(void) {
+  float center_x = DISPLAY_WIDTH/2;
+  float center_y = DISPLAY_HEIGHT/2;
+
+  float rotate_x, rotate_y;
+
+  float S_X[4] = {-RECT_SIZE, RECT_SIZE, RECT_SIZE, -RECT_SIZE};
+  float S_Y[4] = {-RECT_SIZE, -RECT_SIZE, RECT_SIZE, RECT_SIZE};
+
+  float N_X[4];
+  float N_Y[4];
+
+  for(uint16_t i = 0; i < 10000; i++) {
+	if((key_scan16(&keypad) != 0) && i > 10) {
+	  return;
+	}
+
+	lcd_clear_buffer();
+
+	rotate_x = cos(M_PI*i/50);
+	rotate_y = sin(M_PI*i/50);
+
+	for(uint8_t i = 0; i < 4; i++) {
+	  N_X[i] = ROTATED_X(S_X[i], S_Y[i], rotate_x, rotate_y);
+	  N_Y[i] = ROTATED_Y(S_X[i], S_Y[i], rotate_x, rotate_y);
+	}
+
+
+	for(uint8_t i = 0; i < 4; i++) {
+	  lcd_drawLine(floor(center_x + N_X[i % 4]),
+				   floor(center_y + N_Y[i % 4]),
+				   floor(center_x + N_X[(i + 1) % 4]),
+				   floor(center_y + N_Y[(i + 1) % 4]),
+				   WHITE);
+	}
+
+	lcd_display();
+	_delay_ms(10);
+  }
+}
+
+
+static inline void point_matrix_mul(float out[3], float matrix[9], float point[3]) {
+  float accum;
+  for(uint8_t y = 0; y < 3; y++) {
+	accum = 0;
+	for(uint8_t x = 0; x < 3; x++) {
+	  accum += point[x]*matrix[3*y + x];
+	}
+
+	out[y] = accum;
+  }
+}
+
+void cube_disp(void) {
+  float points[8][3] = {
+	{-1, -1, -1},
+	{ 1, -1, -1},
+	{ 1,  1, -1},
+	{-1,  1, -1},
+	{-1, -1,  1},
+	{ 1, -1,  1},
+	{ 1,  1,  1},
+	{-1,  1,  1},
+  };
+
+  float opoints[8][3];
+  float ppoints[8][2];
+
+  float matrix[9];
+
+  float s, c;
+
+  for(uint16_t i = 0; i < 10000; i++) {
+	lcd_clear_buffer();
+
+	if((key_scan16(&keypad) != 0) && i > 10) {
+	  return;
+	}
+
+	c = cos(M_PI*i/50);
+	s = sin(M_PI*i/50);
+
+	matrix[0] = c*c;
+	matrix[1] = c*s*s - s*c;
+	matrix[2] = c*s*c + s*s;
+	matrix[3] = s*c;
+	matrix[4] = s*s*s + c*c;
+	matrix[5] = s*s*c - c*s;
+	matrix[6] = -s;
+	matrix[7] = c*s;
+	matrix[8] = c*c;
+
+	for(uint8_t j = 0; j < 8; j++) {
+	  point_matrix_mul(opoints[j], matrix, points[j]);
+
+	  ppoints[j][0] = opoints[j][0]/(opoints[j][2] + 2.5);
+	  ppoints[j][1] = opoints[j][1]/(opoints[j][2] + 2.5);
+
+	  ppoints[j][0] = DISPLAY_WIDTH/2 + 20*ppoints[j][0];
+	  ppoints[j][1] = DISPLAY_HEIGHT/2 + 20*ppoints[j][1];
+	}
+
+	for(uint8_t j = 0; j < 4; j++) {
+	  lcd_drawLine((uint8_t)ppoints[j][0],
+				   (uint8_t)ppoints[j][1],
+				   (uint8_t)ppoints[(j + 1) % 4][0],
+				   (uint8_t)ppoints[(j + 1) % 4][1],
+				   WHITE);
+
+	  lcd_drawLine((uint8_t)ppoints[j + 4][0],
+				   (uint8_t)ppoints[j + 4][1],
+				   (uint8_t)ppoints[(j + 1) % 4 + 4][0],
+				   (uint8_t)ppoints[(j + 1) % 4 + 4][1],
+				   WHITE);
+
+	  lcd_drawLine((uint8_t)ppoints[j][0],
+				   (uint8_t)ppoints[j][1],
+				   (uint8_t)ppoints[j + 4][0],
+				   (uint8_t)ppoints[j + 4][1],
+				   WHITE);
+	}
+
+	lcd_display();
+	_delay_ms(10);
+  }
+}
+
+static menu_t SUB_MENU = {
+  MenuType,
+  "sub menu",
+  0,
+  0,
+  3,
+  {
+	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Snake", &snake},
+	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Square", &square_disp},
+	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Cube", &cube_disp},
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test1"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test2"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test3"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test4"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test5"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test6"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test7"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test8"}, */
+  }
+};
+
 static menu_t GAMES_MENU = {
   MenuType,
   "Games",
   0,
   0,
-  8,
+  2,
   {
 	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Snake", &snake},
-	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Test", &test},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game2"},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game3"},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game4"},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game5"},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game6"},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game7"},
-	(menu_item_union_t)&(menu_item_t){MenuItemType, "Game8"},
+	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Hello World", &hello_world},
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game2"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game3"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game4"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game5"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game6"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game7"}, */
+	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game8"}, */
   }
 };
 
@@ -251,9 +406,10 @@ static menu_t DEFAULT_MENU = {
   "Default",
   0,
   0,
-  1,
+  2,
   {
 	(menu_item_union_t)&GAMES_MENU,
+	(menu_item_union_t)&SUB_MENU,
   }
 };
 

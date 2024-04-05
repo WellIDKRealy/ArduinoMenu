@@ -15,6 +15,7 @@ FLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 FLAGS += -ffunction-sections -fdata-sections -fno-fat-lto-objects
 FLAGS += -Wall
 FLAGS += -D GRAPHICMODE
+FLAGS += -lm
 
 CFLAGS = -std=gnu99 -Wstrict-prototypes
 CPPFLAGS = -Wwrite-strings
