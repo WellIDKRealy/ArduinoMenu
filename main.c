@@ -288,23 +288,20 @@ static inline void point_matrix_mul(float out[3], float matrix[9], float point[3
 }
 
 void cube_disp(void) {
-  float points[8][3] = {
-	{-1, -1, -1},
-	{ 1, -1, -1},
-	{ 1,  1, -1},
-	{-1,  1, -1},
-	{-1, -1,  1},
-	{ 1, -1,  1},
-	{ 1,  1,  1},
-	{-1,  1,  1},
-  };
+  /* float points[8][3] = { */
+  /*	{-1, -1, -1}, */
+  /*	{ 1, -1, -1}, */
+  /*	{ 1,  1, -1}, */
+  /*	{-1,  1, -1}, */
+  /*	{-1, -1,  1}, */
+  /*	{ 1, -1,  1}, */
+  /*	{ 1,  1,  1}, */
+  /*	{-1,  1,  1}, */
+  /* }; */
 
-  float opoints[8][3];
   float ppoints[8][2];
 
-  float matrix[9];
-
-  float s, c;
+  float s, c, div, h, j, k;
 
   for(uint16_t i = 0; i < 10000; i++) {
 	lcd_clear_buffer();
@@ -316,24 +313,31 @@ void cube_disp(void) {
 	c = cos(M_PI*i/50);
 	s = sin(M_PI*i/50);
 
-	matrix[0] = c*c;
-	matrix[1] = c*s*s - s*c;
-	matrix[2] = c*s*c + s*s;
-	matrix[3] = s*c;
-	matrix[4] = s*s*s + c*c;
-	matrix[5] = s*s*c - c*s;
-	matrix[6] = -s;
-	matrix[7] = c*s;
-	matrix[8] = c*c;
+	/* matrix[0] = c*c; */
+	/* matrix[1] = c*s*s - s*c; */
+	/* matrix[2] = c*s*c + s*s; */
 
-	for(uint8_t j = 0; j < 8; j++) {
-	  point_matrix_mul(opoints[j], matrix, points[j]);
+	/* matrix[3] = s*c; */
+	/* matrix[4] = s*s*s + c*c; */
+	/* matrix[5] = s*s*c - c*s; */
 
-	  ppoints[j][0] = opoints[j][0]/(opoints[j][2] + 2.5);
-	  ppoints[j][1] = opoints[j][1]/(opoints[j][2] + 2.5);
+	/* matrix[6] = -s; */
+	/* matrix[7] = c*s; */
+	/* matrix[8] = c*c; */
 
-	  ppoints[j][0] = DISPLAY_WIDTH/2 + 20*ppoints[j][0];
-	  ppoints[j][1] = DISPLAY_HEIGHT/2 + 20*ppoints[j][1];
+	for(uint8_t w = 0; w < 8; w++) {
+	  // Hand "Optimization" to get rid of memory problems
+	  h = (w % 4 == 0 ? -1 : 1)*(w % 4 == 3 ? -1 : 1);
+	  j = (w % 4 < 2 ? -1 : 1);
+	  k = (w < 4 ? -1 : 1);
+
+	  div = 2.5 - s*h + c*s*j + c*c*k;
+	  ppoints[w][0] = (c*c*h + (c*s*s - s*c)*j + (c*s*c + s*s)*k)/div;
+	  ppoints[w][1] = (s*c*h + (s*s*s + c*c)*j + (s*s*c - c*s)*k)/div;
+
+
+	  ppoints[w][0] = DISPLAY_WIDTH/2 + 32*ppoints[w][0];
+	  ppoints[w][1] = DISPLAY_HEIGHT/2 + 32*ppoints[w][1];
 	}
 
 	for(uint8_t j = 0; j < 4; j++) {
@@ -366,19 +370,19 @@ static menu_t SUB_MENU = {
   "sub menu",
   0,
   0,
-  3,
+  11,
   {
-	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Snake", &snake},
-	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Square", &square_disp},
-	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Cube", &cube_disp},
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test1"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test2"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test3"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test4"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test5"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test6"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test7"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Test8"}, */
+	(menu_item_t*)&(menu_program_t){MenuProgramType, "Snake", &snake},
+	(menu_item_t*)&(menu_program_t){MenuProgramType, "Square", &square_disp},
+	(menu_item_t*)&(menu_program_t){MenuProgramType, "Cube", &cube_disp},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test1"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test2"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test3"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test4"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test5"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test6"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test7"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Test8"},
   }
 };
 
@@ -387,17 +391,17 @@ static menu_t GAMES_MENU = {
   "Games",
   0,
   0,
-  2,
+  9,
   {
-	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Snake", &snake},
-	(menu_item_union_t)&(menu_program_t){MenuProgramType, "Hello World", &hello_world},
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game2"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game3"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game4"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game5"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game6"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game7"}, */
-	/* (menu_item_union_t)&(menu_item_t){MenuItemType, "Game8"}, */
+	(menu_item_t*)&(menu_program_t){MenuProgramType, "Snake", &snake},
+	(menu_item_t*)&(menu_program_t){MenuProgramType, "Hello World", &hello_world},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game2"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game3"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game4"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game5"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game6"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game7"},
+	(menu_item_t*)&(menu_item_t){MenuItemType, "Game8"},
   }
 };
 
@@ -408,8 +412,8 @@ static menu_t DEFAULT_MENU = {
   0,
   2,
   {
-	(menu_item_union_t)&GAMES_MENU,
-	(menu_item_union_t)&SUB_MENU,
+	(menu_item_t*)&GAMES_MENU,
+	(menu_item_t*)&SUB_MENU,
   }
 };
 
@@ -438,7 +442,7 @@ static inline void draw_menu(menu_t* menu) {
 
   for(uint8_t i = menu->origin; i < MIN(menu->size, menu->origin + TEXT_HEIGHT - 1); i++) {
 	lcd_gotoxy(1, i - menu->origin + 1);
-	lcd_puts(menu->items[i].menu_item->name);
+	lcd_puts(menu->items[i]->name);
   }
 
   draw_selected(menu);
@@ -522,18 +526,18 @@ int main(void) {
 
 	  break;
 	case '6':
-	  menu_item_union_t val = SELECTED_MENU->items[SELECTED_MENU->selected];
+	  menu_item_t* val = SELECTED_MENU->items[SELECTED_MENU->selected];
 
-	  switch(val.menu_item->type) {
+	  switch(val->type) {
 	  case MenuType:
 		MENU_STACK = &(menu_stack_t){MENU_STACK, SELECTED_MENU};
-		SELECTED_MENU = val.menu;
+		SELECTED_MENU = (menu_t*)val;
 
 		draw_menu(SELECTED_MENU);
 		break;
 
 	  case MenuProgramType:
-		val.menu_program->program_f();
+		((menu_program_t*)val)->program_f();
 
 		draw_menu(SELECTED_MENU);
 		break;

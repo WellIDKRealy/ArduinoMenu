@@ -4,12 +4,6 @@ enum MenuItemType {
   MenuType,
 };
 
-typedef union MenuItemU {
-  struct MenuItem* menu_item;
-  struct MenuProgram* menu_program;
-  struct Menu* menu;
-} menu_item_union_t;
-
 typedef struct MenuItem {
   enum MenuItemType type;
   char* name;
@@ -30,7 +24,7 @@ typedef struct Menu {
   uint8_t selected;
 
   uint8_t size;
-  menu_item_union_t items[];
+  menu_item_t* items[];
 } menu_t;
 
 
