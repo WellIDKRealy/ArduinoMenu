@@ -31,108 +31,74 @@ const char cmap[COLS_NO*ROWS_NO] = {
 };
 
 
-enum MenuItemT {Empty = 0, Program = 1, Menu = 2};
+enum MenuItemType {
+  MenuItemType,
+  MenuProgramType,
+  MenuType,
+};
 
-typedef struct MenuEmpty {
-  // Shared
-  enum MenuItemT type;
-  char* name;
-} menu_empty_t;
-
-
-typedef struct MenuProgram {
-  // Shared
-  enum MenuItemT type;
+class MenuItem {
+public:
+  enum MenuItemType type;
   char* name;
 
+  MenuItem(char* name, enum MenuItemType type = MenuItemType) : type(type), name(name) {}
+};
+
+class MenuProgram : public MenuItem {
+public:
   void (*program_f)();
-} menu_program_t;
 
-
-typedef struct Menu {
-  // Shared
-  enum MenuItemT type;
-  char* name;
-
-  struct Menu* father;
-
-  uint8_t origin;
-  uint8_t selected;
-
-  uint8_t size;
-  union MenuItem items[];
-
-} menu_t;
-
-typedef union MenuItem {
-  struct MenuEmpty empty;
-  struct MenuProgram program;
-  struct Menu menu;
-} menu_item_t;
-
-
-void set_fathers(menu_t* menu) {
-  for(uint8_t i = 0; i < menu->size; i++) {
-	if(menu->items[i].type == Menu) {
-	  menu_t* val = (menu_t*)&menu->items[i];
-	  val->father = menu;
-	  set_fathers(val);
-	}
-  }
-}
-
-static menu_t GAMES_MENU = {
-  Menu,
-  "Games",
-  NULL,
-  0,
-  0,
-  8,
-  {
-	(menu_empty_t){Empty, "GAME1"},
-	(menu_empty_t){Empty, "GAME2"},
-	(menu_empty_t){Empty, "GAME3"},
-	(menu_empty_t){Empty, "GAME4"},
-	(menu_empty_t){Empty, "GAME5"},
-	(menu_empty_t){Empty, "GAME6"},
-	(menu_empty_t){Empty, "GAME7"},
-	(menu_empty_t){Empty, "GAME8"},
-  }
+  MenuProgram(char* name, void (*program_f)()) : MenuItem(name, MenuProgramType), program_f(program_f) {}
 };
 
-static menu_t DEFAULT_MENU = {
-  Menu,
-  "Default",
-  NULL,
-  0,
-  0,
-  8,
-  {
-	GAMES_MENU,
-	(menu_empty_t){Empty, "TEST2"},
-	(menu_empty_t){Empty, "TEST3"},
-	(menu_empty_t){Empty, "TEST4"},
-	(menu_empty_t){Empty, "TEST5"},
-	(menu_empty_t){Empty, "TEST6"},
-	(menu_empty_t){Empty, "TEST7"},
-	(menu_empty_t){Empty, "TEST8"},
-  }
-};
+template<uint8_t arr_size>
+ class Menu : public MenuItem {
+ public:
+   uint8_t origin;
+   uint8_t selected;
+
+   uint8_t size;
+   MenuItem items[arr_size];
+
+   Menu(char* name, MenuItem[arr_size] items, uint8_t origin = 0, uint8_t selected = 0) : MenuItem(name, MenuType), origin(origin), selected(selected), size(arr_size), items(items) {}
+ };
 
 
-static menu_t* SELECTED_MENU = &DEFAULT_MENU;
+static Menu<8> GAMES_MENU = Menu("Games", (MenuItem[8]){
+  MenuItem("Game1"),
+  MenuItem("Game2"),
+  MenuItem("Game3"),
+  MenuItem("Game4"),
+  MenuItem("Game5"),
+  MenuItem("Game6"),
+  MenuItem("Game7"),
+  MenuItem("Game8")},
+								 0, 0);
 
-static inline void clear_selected(menu_t* menu) {
+static Menu<8> DEFAULT_MENU = Menu("Default", (MenuItem[8]){
+  GAMES_MENU,
+  MenuItem("TEST2"),
+  MenuItem("TEST3"),
+  MenuItem("TEST4"),
+  MenuItem("TEST5"),
+  MenuItem("TEST6"),
+  MenuItem("TEST7"),
+  MenuItem("TEST8")});
+
+static Menu* SELECTED_MENU = &DEFAULT_MENU;
+
+static inline void clear_selected(Menu* menu) {
   lcd_gotoxy(0, menu->selected - menu->origin + 1);
   lcd_putc(' ');
 }
 
-static inline void draw_selected(menu_t* menu) {
+static inline void draw_selected(Menu* menu) {
   lcd_gotoxy(0, menu->selected - menu->origin + 1);
   lcd_putc('>');
 }
 
-static inline void draw_menu(menu_t* menu) {
+static inline void draw_menu(Menu* menu) {
   lcd_clear_buffer();
 
   // header
@@ -150,7 +116,7 @@ static inline void draw_menu(menu_t* menu) {
   draw_selected(menu);
 }
 
-static inline void inc_selected(menu_t* menu) {
+static inline void inc_selected(Menu* menu) {
   if(menu->selected + 1 >= menu->size) {
 	return;
   }
@@ -169,7 +135,7 @@ static inline void inc_selected(menu_t* menu) {
   draw_selected(menu);
 }
 
-static inline void dec_selected(menu_t* menu) {
+static inline void dec_selected(Menu* menu) {
   if(menu->selected <= 0) {
 	return;
   }
@@ -188,11 +154,7 @@ static inline void dec_selected(menu_t* menu) {
   draw_selected(menu);
 }
 
-
 int main(void) {
-  // idk if there is better solution
-  set_fathers(&DEFAULT_MENU);
-
   keypad_t keypad = make_keypad(COLS, COLS_NO, ROWS, ROWS_NO);
   init_keypad(&keypad);
 
@@ -229,20 +191,12 @@ int main(void) {
 	case '8':
 	  inc_selected(SELECTED_MENU);
 	  break;
-
-	case '4':
-	  if(SELECTED_MENU->father == NULL) {
-		break;
-	  }
-	  SELECTED_MENU = SELECTED_MENU->father;
-	  draw_menu(SELECTED_MENU);
-	  break;
 	case '6':
-	  menu_item_t val = SELECTED_MENU->items[SELECTED_MENU->selected];
+	  MenuItem val = SELECTED_MENU->items[SELECTED_MENU->selected];
 
 	  switch(val.type) {
-	  case Menu:
-		SELECTED_MENU = (menu_t*)&val;
+	  case MenuType:
+		SELECTED_MENU = &val;
 
 		draw_menu(SELECTED_MENU);
 		break;

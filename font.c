@@ -119,22 +119,25 @@ const char ssd1306oled_font[][6] PROGMEM = {
 {0x00, 0x30, 0x48, 0x20, 0x48, 0x30}, // ω
 {0x00, 0x5C, 0x62, 0x02, 0x62, 0x5C} // Ω
 };
-const char special_char[][2] PROGMEM = {
-    // define position of special char in font
-    // {special char, position in font}
-    // be sure that last element of this
-    // array are {0xff, 0xff} and first element
-    // are {first special char, first element after normal char-set in font}
-    {'ü', 95},  // special_char[0]
-    {'Ü', 96},
-    {'ä', 97},
-    {'Ä', 98},
-    {'ö', 99},
-    {'Ö', 100},
-    {'°', 101},
-    {'ß', 102},
-    {'µ', 103},
-    {'ω', 104},
-    {'Ω', 105},
-    {0xff, 0xff} // end of table special_char
-};
+
+const char special_char[][2] = {{0xff, 0xff}};
+
+/* const char special_char[][2] PROGMEM = { */
+/*   // define position of special char in font */
+/*   // {special char, position in font} */
+/*   // be sure that last element of this */
+/*   // array are {0xff, 0xff} and first element */
+/*   // are {first special char, first element after normal char-set in font} */
+/*   {'ü', 95},  // special_char[0] */
+/*   {'Ü', 96}, */
+/*   {'ä', 97}, */
+/*   {'Ä', 98}, */
+/*   {'ö', 99}, */
+/*   {'Ö', 100}, */
+/*   {'°', 101}, */
+/*   {'ß', 102}, */
+/*   {'µ', 103}, */
+/*   {'ω', 104}, */
+/*   {'Ω', 105}, */
+/*   {0xff, 0xff} // end of table special_char */
+/* }; */

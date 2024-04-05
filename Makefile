@@ -6,14 +6,18 @@ FORMAT = ihex
 
 DEVICE = /dev/ttyUSB0
 
-SRC = $(wildcard *.c)
+CSRC = $(wildcard *.c)
+CPPSRC = $(wildcard *.cpp)
 
-CFLAGS = -O2 -std=gnu99
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-CFLAGS += -ffunction-sections -fdata-sections -fno-fat-lto-objects
-CFLAGS += -Wall -Wstrict-prototypes
-CFLAGS += -static -flto
-CFLAGS += -D GRAPHICMODE
+FLAGS = -mmcu=${MCU} -DF_CPU=${F_CPU} -D${ARDUINO}
+FLAGS += -O2 -static -flto
+FLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+FLAGS += -ffunction-sections -fdata-sections -fno-fat-lto-objects
+FLAGS += -Wall
+FLAGS += -D GRAPHICMODE
+
+CFLAGS = -std=gnu99 -Wstrict-prototypes
+CPPFLAGS = -Wwrite-strings
 
 GUIX_INVOKE = guix time-machine -C channels.scm -- shell -m manifest.scm --pure -- make
 
@@ -29,13 +33,18 @@ build_real: main.hex main.elf
 flash_real: main.hex
 	avrdude -p ${MCU} -c arduino -P ${DEVICE} -b 115200 -U flash:w:main.hex:i
 
-main.elf: ${SRC}
-	avr-gcc ${SRC} -o main.elf -mmcu=${MCU} -DF_CPU=${F_CPU} -D${ARDUINO} ${CFLAGS} ${LFLAGS}
+
+main.elf: ${CSRC} ${CPPSRC}
+	avr-gcc -c ${CSRC} ${FLAGS} ${CFLAGS}
+	avr-g++ -c ${CPPSRC} ${FLAGS} ${CPPFLAGS}
+
+	avr-g++ -o main.elf $(pathsubst %c,%.o,${CSRC}) $(pathsubst %cpp,%.o,${CPPSRC}) ${CPPFLAGS}
 
 main.hex: main.elf
 	avr-objcopy -O ihex -R .eeprom main.elf main.hex
 
 clean:
 	rm main.hex main.elf
+	rm *.o
 
 .PHONY: flash flash_real clean build build_real
