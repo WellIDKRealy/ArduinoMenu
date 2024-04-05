@@ -3,13 +3,14 @@
 
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 // PINOUT https://www.teachmemicro.com/wp-content/uploads/2019/06/Arduino-Nano-pinout-3.jpg
 
 #include "lcd.h"
 #include "font.h"
 #include "keypad.h"
-
+#include "menu.h"
 
 #define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
 
@@ -29,49 +30,6 @@ const char cmap[COLS_NO*ROWS_NO] = {
   '0', '8', '5', '2',
   '*', '7', '4', '1',
 };
-
-
-enum MenuItemType {
-  MenuItemType,
-  MenuProgramType,
-  MenuType,
-};
-
-typedef union MenuItemU {
-  struct MenuItem* menu_item;
-  struct MenuProgram* menu_program;
-  struct Menu* menu;
-} menu_item_union_t;
-
-typedef struct MenuItem {
-  enum MenuItemType type;
-  char* name;
-} menu_item_t;
-
-typedef struct MenuProgram {
-  enum MenuItemType type;
-  char* name;
-
-  void (*program_f)();
-} menu_program_t;
-
-typedef struct Menu {
-  enum MenuItemType type;
-  char* name;
-
-  uint8_t origin;
-  uint8_t selected;
-
-  uint8_t size;
-  menu_item_union_t items[];
-} menu_t;
-
-
-typedef struct MenuStack {
-  struct MenuStack* back;
-  menu_t* menu;
-} menu_stack_t;
-
 
 static menu_t GAMES_MENU = {
   MenuType,
