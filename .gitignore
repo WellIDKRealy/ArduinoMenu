@@ -1,3 +1,4 @@
 main
-main.elf
-main.hex
+*.o
+*.hex
+*.elf
