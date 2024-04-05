@@ -68,3 +68,18 @@ uint8_t key_get_first(keypad_t* keypad) {
 
   return 255;
 }
+
+char key_get_first_char_diff(keypad_t* keypad, const char* cmap, uint16_t current_mask, uint16_t last_mask) {
+  uint16_t diff_mask = ~last_mask & current_mask;
+
+  char pressed = '\0';
+  for(uint8_t i = 0; i < keypad->rows_no*keypad->cols_no; i++) {
+	if((diff_mask >> i) & 1) {
+	  pressed = cmap[i];
+	  break;
+	}
+  }
+
+  return pressed;
+
+}

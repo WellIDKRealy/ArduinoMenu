@@ -19,5 +19,6 @@ bool key_pressed(keypad_t* keypad, uint8_t col, uint8_t row);
 void key_scan(keypad_t* keypad, bool* mask);
 uint16_t key_scan16(keypad_t* keypad);
 uint8_t key_get_first(keypad_t* keypad);
+char key_get_first_char_diff(keypad_t* keypad, const char* cmap, uint16_t current_mask, uint16_t last_mask);
 
 #endif

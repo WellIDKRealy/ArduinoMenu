@@ -19,7 +19,7 @@ typedef struct MenuProgram {
   enum MenuItemType type;
   char* name;
 
-  void (*program_f)();
+  void (*program_f)(void);
 } menu_program_t;
 
 typedef struct Menu {
