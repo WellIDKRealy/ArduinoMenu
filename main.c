@@ -48,20 +48,12 @@ typedef struct MenuItem {
   char* name;
 } menu_item_t;
 
-static inline menu_item_t MenuItem(char* name) {
-  return (struct MenuItem){MenuItemType, name};
-}
-
 typedef struct MenuProgram {
   enum MenuItemType type;
   char* name;
 
   void (*program_f)();
 } menu_program_t;
-
-static inline menu_program_t MenuProgram(char* name, void (*program_f)()) {
-  return (struct MenuProgram){MenuProgramType, name, program_f};
-}
 
 typedef struct Menu {
   enum MenuItemType type;
@@ -73,6 +65,13 @@ typedef struct Menu {
   uint8_t size;
   menu_item_union_t items[];
 } menu_t;
+
+
+typedef struct MenuStack {
+  struct MenuStack* back;
+  menu_t* menu;
+} menu_stack_t;
+
 
 static menu_t GAMES_MENU = {
   MenuType,
@@ -104,6 +103,7 @@ static menu_t DEFAULT_MENU = {
 };
 
 static menu_t* SELECTED_MENU = &DEFAULT_MENU;
+static menu_stack_t* MENU_STACK = NULL;
 
 static inline void clear_selected(menu_t* menu) {
   lcd_gotoxy(0, menu->selected - menu->origin + 1);
@@ -142,7 +142,7 @@ static inline void inc_selected(menu_t* menu) {
 
   menu->selected += 1;
 
-  if(menu->selected - menu->origin + 2 >= TEXT_HEIGHT - 1) {
+  if(menu->selected - menu->origin + 2 >= TEXT_HEIGHT - 1 && menu->size - menu->origin > TEXT_HEIGHT - 1) {
 	menu->origin += 1;
 
 	draw_menu(menu);
@@ -208,11 +208,26 @@ int main(void) {
 	case '8':
 	  inc_selected(SELECTED_MENU);
 	  break;
+	case '4':
+	  if(MENU_STACK == NULL) {
+		break;
+	  }
+
+	  SELECTED_MENU = MENU_STACK->menu;
+
+	  menu_stack_t* back = MENU_STACK->back;
+	  free(MENU_STACK);
+	  MENU_STACK = back;
+
+	  draw_menu(SELECTED_MENU);
+
+	  break;
 	case '6':
 	  menu_item_union_t val = SELECTED_MENU->items[SELECTED_MENU->selected];
 
 	  switch(val.menu_item->type) {
 	  case MenuType:
+		MENU_STACK = &(menu_stack_t){MENU_STACK, SELECTED_MENU};
 		SELECTED_MENU = val.menu;
 
 		draw_menu(SELECTED_MENU);
